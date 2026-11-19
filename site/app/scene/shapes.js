@@ -155,6 +155,14 @@ function tracy(marks, h = 3.6) {
   return b;
 }
 
+/** Tracy drawn entirely by the line: every stroke of the line-art mascot (vectorised by raw/tracy/tracy-line.py) */
+function tracyArt(marks, h = 3.6) {
+  const b = builder(), t = marks.tracyArt;
+  for (const st of t.strokes) b.stroke(st.map(p => [p[0] * h, p[1] * h]));
+  b.node('tracy', 0, 0).node('tl', -t.aspect / 2 * h, h / 2).node('br', t.aspect / 2 * h, -h / 2);
+  return b;
+}
+
 /** three linked rings: RWA · Base · DAO */
 function pillars(ids = ['p1', 'p2', 'p3']) {
   const b = builder(), r = 0.72, gap = 1.75;
@@ -289,7 +297,7 @@ function rule() {
   return b.stroke([[-4, 0], [4, 0]], 0.6);
 }
 
-export const LIBRARY = { word, mark, tracy, pillars, route, ring, loop, blocks, hub, timeline, wave, rule };
+export const LIBRARY = { word, mark, tracy, tracyArt, pillars, route, ring, loop, blocks, hub, timeline, wave, rule };
 
 /** build a shape by spec: "route" or { kind: "timeline", ids: [...], done: 2 } */
 export function makeShape(spec, marks, N) {
@@ -300,6 +308,7 @@ export function makeShape(spec, marks, N) {
   if (s.kind === 'word') b = word(marks, s.h);
   else if (s.kind === 'mark') b = mark(marks, s.h);
   else if (s.kind === 'tracy') b = tracy(marks, s.h);
+  else if (s.kind === 'tracyArt') b = tracyArt(marks, s.h);
   else if (s.kind === 'timeline') b = timeline(s.ids || ['m1', 'm2', 'm3', 'm4', 'm5', 'm6'], s.done ?? 2, s.vertical);
   else if (s.kind === 'blocks') b = blocks(s.n || 5, s.ids);
   else b = f(s.ids);

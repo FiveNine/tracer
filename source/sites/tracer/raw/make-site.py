@@ -20,8 +20,8 @@ LINKS = {
 }
 
 # ---- the line's shapes: natural width (world units) for fitting ----
-WIDTH = {'tracy': 3.05, 'word': 6.15, 'pillars': 5.4, 'route': 6.1, 'ring': 3.6, 'loop': 4.3, 'blocks': 4.7, 'hub': 4.5, 'timeline': 2.2, 'mark': 1.95, 'wave': 14, 'rule': 8}
-HEIGHT = {'tracy': 3.6, 'word': 1.3, 'pillars': 1.5, 'route': 2.7, 'ring': 3.6, 'loop': 3.2, 'blocks': 2.0, 'hub': 3.0, 'timeline': 5.8, 'mark': 3.0, 'wave': .5, 'rule': .1}
+WIDTH = {'tracyArt': 2.24, 'tracy': 3.05, 'word': 6.15, 'pillars': 5.4, 'route': 6.1, 'ring': 3.6, 'loop': 4.3, 'blocks': 4.7, 'hub': 4.5, 'timeline': 2.2, 'mark': 1.95, 'wave': 14, 'rule': 8}
+HEIGHT = {'tracyArt': 3.6, 'tracy': 3.6, 'word': 1.3, 'pillars': 1.5, 'route': 2.7, 'ring': 3.6, 'loop': 3.2, 'blocks': 2.0, 'hub': 3.0, 'timeline': 5.8, 'mark': 3.0, 'wave': .5, 'rule': .1}
 
 
 def kind(s):
@@ -108,7 +108,7 @@ def tags_timeline(k):
 pages, xpages = {}, {}
 
 # ---------------------------------------------------------------- home
-shapes = ['word', 'pillars', 'route', 'ring', 'loop', 'blocks', 'hub', {'kind': 'timeline', 'ids': TL_IDS, 'done': 2, 'vertical': True}, 'tracy', 'mark']
+shapes = ['word', 'pillars', 'route', 'ring', 'loop', 'blocks', 'hub', {'kind': 'timeline', 'ids': TL_IDS, 'done': 2, 'vertical': True}, 'tracyArt', 'mark']
 pages['index'], xpages['index'] = page(
     'Tracer: carbon removal, traced on-chain', 'Tracer is a real-world asset project on Base. TRCR holders govern the Carrot protocol, where verified carbon removal is issued, traded and retired on-chain.',
     shapes, [
@@ -153,7 +153,7 @@ pages['index'], xpages['index'] = page(
     ],
     tags=[{'id': 'p1', 'k': 1, 'label': 'RWA', 'pos': 'mid'}, {'id': 'p2', 'k': 1, 'label': 'Base', 'pos': 'mid'}, {'id': 'p3', 'k': 1, 'label': 'DAO', 'pos': 'mid'}]
     + tags_route(2) + tags_ring(3) + tags_loop(4) + [{'id': 'chain', 'k': 5, 'label': 'Base · Ethereum L2', 'flip': True}] + tags_hub(6) + tags_timeline(7),
-    art=[{'k': 8, 'src': 'tracy-line.png'}])
+    )   # Tracy (k 8) is drawn by the line itself: no artwork overlay
 
 # ---------------------------------------------------------------- token
 shapes = ['ring', 'wave', 'mark', 'ring', 'wave']

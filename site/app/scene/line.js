@@ -176,7 +176,7 @@ export function createLine(app, o) {
     core.material.uniforms.uWidth.value = P.get('line.w') * dpr;
     core.material.uniforms.uAlpha.value = P.get('line.alpha') * api.fade;
     halo.material.uniforms.uWidth.value = P.get('line.w') * dpr * 9;
-    halo.material.uniforms.uAlpha.value = P.get('line.alpha') * P.get('line.halo') * api.fade;
+    halo.material.uniforms.uAlpha.value = P.get('line.alpha') * P.get('line.halo') * api.fade * (1 - tone * 0.45);   // on paper the ink needs less glow
     tmp.copy(cWhite).lerp(cBlue, tone);
     core.material.uniforms.uColor.value.copy(tmp); halo.material.uniforms.uColor.value.copy(tmp);
     tmp.copy(cHotBlue).lerp(cHotPaper, tone);

@@ -49,7 +49,7 @@ const keysOf = list => (list || []).map(k => {
 async function build() {
   const marks = await fetch('assets/marks.json').then(r => r.json());
   await app.idle();
-  const N = app.quality === 'low' ? 1536 : 2048;
+  const N = app.quality === 'low' ? 2048 : 3072;
   const shapes = XP.shapes.map(s => makeShape(s, marks, N));
   await app.idle();
   P.define('tone', 0, { rate: 4 });
