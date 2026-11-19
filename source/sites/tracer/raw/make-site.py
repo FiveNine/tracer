@@ -20,8 +20,8 @@ LINKS = {
 }
 
 # ---- the line's shapes: natural width (world units) for fitting ----
-WIDTH = {'tracyArt': 2.24, 'tracy': 3.05, 'word': 6.15, 'pillars': 5.4, 'route': 6.1, 'ring': 3.6, 'loop': 4.3, 'blocks': 4.7, 'hub': 4.5, 'timeline': 2.2, 'mark': 1.95, 'wave': 14, 'rule': 8}
-HEIGHT = {'tracyArt': 3.6, 'tracy': 3.6, 'word': 1.3, 'pillars': 1.5, 'route': 2.7, 'ring': 3.6, 'loop': 3.2, 'blocks': 2.0, 'hub': 3.0, 'timeline': 5.8, 'mark': 3.0, 'wave': .5, 'rule': .1}
+WIDTH = {'sweep': .44, 'thread': 4.96, 'tracyArt': 2.24, 'tracy': 3.05, 'word': 6.15, 'pillars': 5.4, 'route': 6.1, 'ring': 3.6, 'loop': 4.3, 'blocks': 4.7, 'hub': 4.5, 'timeline': 2.2, 'mark': 1.95, 'wave': 14, 'rule': 8}
+HEIGHT = {'sweep': 8.1, 'thread': 4.03, 'tracyArt': 3.6, 'tracy': 3.6, 'word': 1.3, 'pillars': 1.5, 'route': 2.7, 'ring': 3.6, 'loop': 3.2, 'blocks': 2.0, 'hub': 3.0, 'timeline': 5.8, 'mark': 3.0, 'wave': .5, 'rule': .1}
 
 
 def kind(s):
@@ -35,12 +35,17 @@ def pose(stage, shape, k, tone):
     if stage == 'hero':      # the wordmark, centred above the headline
         d = {'line.x': 0, 'line.y': .5, 'line.s': .9, 'line.alpha': 1, 'pulse.amt': .9, 'line.ry': 0, 'line.rx': 0}
         n = {'line.x': 0, 'line.y': .45, 'line.s': round(2.25 / w, 3)}
+    elif stage == 'sweep':   # stood up across a pinned photo; the section's extra keys move it (sec(..., sweep=...))
+        d = {'line.x': shape['from'], 'line.y': 0, 'line.s': 1, 'line.alpha': 1, 'pulse.amt': .7, 'line.ry': 0, 'line.rx': 0}
+        n = {'line.x': shape['nFrom'], 'line.y': -.5, 'line.s': .42}
     elif stage in ('right', 'left'):
         s = round(min(1.0, 3.8 / w, 3.7 / h), 3)
         tilt = .16 if k % 2 else -.16      # alternate, so the line sways in depth from chapter to chapter
         if kind(shape) == 'tracyArt': tilt = 0   # flat to the screen: her colours fill in exactly under the line
+        if kind(shape) == 'thread': s, tilt = .93, .1   # the windows want room: larger than the diagrams were
         d = {'line.x': .5 if stage == 'right' else -.5, 'line.y': 0, 'line.s': s, 'line.alpha': 1, 'pulse.amt': .8, 'line.ry': tilt, 'line.rx': .06 if tilt else 0}
         n = {'line.x': 0, 'line.y': .46, 'line.s': round(min(2.1 / w, 2.0 / h), 3), 'line.ry': tilt * .4, 'line.rx': 0}
+        if kind(shape) == 'thread': n.update({'line.y': .47, 'line.s': .48})
     elif stage == 'quiet':   # a calm wave along the foot of the screen behind long reads
         d = {'line.x': 0, 'line.y': -.82, 'line.s': 1, 'line.alpha': .45, 'pulse.amt': .35, 'line.ry': 0, 'line.rx': 0}
         n = {'line.y': -.9}
@@ -59,6 +64,9 @@ def keys_of(sections, shapes, cta_tone='blue'):
         if n: k['narrow'] = n
         if i > 0: k.update({'shift': '-18vh', 'hold': .45})   # arrives as the section settles into view
         out.append(k)
+        sh = shapes[s['_k']]
+        if s['_stage'] == 'sweep':   # the sweep: right to left while the chapter is pinned (linear, so the dots keep pace)
+            out.append({'at': '#' + s['id'], 'offset': .6, 'ease': 'linear', 'set': {'line.x': sh['to']}, 'narrow': {'line.x': sh['nTo']}})
     last = sections[-1]
     d, n = pose(last['_stage'], shapes[last['_k']], last['_k'], 'blue')
     d = dict(d, **{'line.alpha': .18, 'pulse.amt': .3})   # the footer: the mark steps back behind the links
@@ -68,7 +76,7 @@ def keys_of(sections, shapes, cta_tone='blue'):
 
 def sec(id, kind_, tone, stage, k, **kw):
     """a section: its kind of block, the world's tone, the line's stage (hero|right|left|quiet|hidden) and shape index"""
-    css_stage = {'hero': 'center', 'right': 'right', 'left': 'left', 'quiet': 'none', 'hidden': 'none'}[stage]
+    css_stage = {'hero': 'center', 'sweep': 'none', 'right': 'right', 'left': 'left', 'quiet': 'none', 'hidden': 'none'}[stage]
     d = {'id': id, 'kind': kind_, 'tone': tone, 'stage': css_stage, '_stage': stage, '_k': k}
     d.update(kw)
     return d
@@ -109,52 +117,61 @@ def tags_timeline(k):
 pages, xpages = {}, {}
 
 # ---------------------------------------------------------------- home
-shapes = ['word', 'pillars', 'route', 'ring', 'loop', 'blocks', 'hub', {'kind': 'timeline', 'ids': TL_IDS, 'done': 2, 'vertical': True}, {'kind': 'tracyArt', 'fill': 'tracyFill'}, 'mark']
+# The line is the hero's wordmark, then the light that tokenizes a real removal project as it sweeps across it, then a
+# thread through windows onto removal projects; it steps back for the reading chapters and returns to draw Tracy.
+shapes = ['word',
+          {'kind': 'sweep', 'photo': 'photos/biochar.webp', 'from': .78, 'to': .02, 'nFrom': .8, 'nTo': -.55},
+          {'kind': 'thread', 'photos': ['photos/mangrove-disc.webp', 'photos/forest-disc.webp', 'photos/basalt-disc.webp', 'photos/biochar-disc.webp']},
+          {'kind': 'tracyArt', 'fill': 'tracyFill'}, 'mark']
 pages['index'], xpages['index'] = page(
     'Tracer: carbon removal, traced on-chain', 'Tracer is a real-world asset project on Base. TRCR holders govern the Carrot protocol, where verified carbon removal is issued, traded and retired on-chain.',
     shapes, [
         sec('hero', 'hero', 'blue', 'hero', 0, full=True, eyebrow='Real-world assets · Built on Base', title='Carbon removal, traced on-chain.',
             lede=['Tracer governs the Carrot protocol, where verified carbon removal becomes an on-chain asset on Base and is retired for good. **TRCR** is how you take part.'],
             ctas=[{'label': 'Buy TRCR', 'href': '@buy'}, {'label': 'Read the token guide', 'href': 'token', 'ghost': True}], chip=True, trace='Touch the line, or send a trace', stageBox=True),
-        sec('pillars', 'pillars', 'blue', 'right', 1, full=True, eyebrow='Tracer in three lines', title='Three things to know.', items=[
-            {'title': 'A real-world asset project', 'body': 'Every CRRT stands for endorsed carbon removal, down to the gram.', 'href': 'ecosystem'},
-            {'title': 'Built on Base', 'body': 'A fast, low-cost Ethereum layer 2. One wallet, cents per transaction.', 'href': 'base'},
-            {'title': 'Run by its holders', 'body': 'TRCR holders propose and vote on how the protocol runs.', 'href': 'governance'}]),
-        sec('rwa', 'steps', 'paper', 'right', 2, full=True, eyebrow='How the RWA works', title='From a removal project to a retired tonne.', items=[
-            {'title': 'Licensed and endorsed', 'body': 'Endorsers admitted by the DAO license removal projects and endorse their credits.'},
-            {'title': 'Issued as CRRT', 'body': 'Projects issue CRRT against endorsed removal. One slice is one gram; a million slices is a tonne.'},
-            {'title': 'Bought on the marketplace', 'body': 'Fixed-price listings in admitted stablecoins. No protocol fees.'},
-            {'title': 'Retired in a Rabbit', 'body': 'Send CRRT into a Rabbit and it is retired for good, with its beneficiary on record.'}],
-            ctas=[{'label': 'Explore the ecosystem', 'href': 'ecosystem', 'ghost': True}]),
-        sec('token', 'facts', 'paper', 'right', 3, full=True, eyebrow='The token', title='TRCR, at a glance.', lede=['The airdrop and the QuickSwap launch are next. The token guide has the contract, how to buy and where every token sits.'], items=[
+        sec('rwa', 'tokenize', 'blue', 'sweep', 1, eyebrow='How the RWA works', title='The world, made on-chain.',
+            lede=['Where the line passes, verified carbon removal becomes **CRRT**: an asset on Base you can hold, trade and retire. Every dot is a gram.'],
+            items=[
+                {'title': 'Licensed and endorsed', 'body': 'Endorsers admitted by the DAO license removal projects and endorse their credits.'},
+                {'title': 'Issued as CRRT', 'body': 'Projects issue CRRT against endorsed removal. One slice is one gram; a million slices is a tonne.'},
+                {'title': 'Bought on the marketplace', 'body': 'Fixed-price listings in admitted stablecoins. No protocol fees.'},
+                {'title': 'Retired in a Rabbit', 'body': 'Send CRRT into a Rabbit and it is retired for good, with its beneficiary on record.'}],
+            counter='grams on-chain · 1,000,000 = one tonne',
+            credit='Photo: biochar, Tim Brunauer / GIZ, [CC BY-SA 4.0](https://commons.wikimedia.org/wiki/File:Charged_and_inoculated_biochar_ready_for_soil_application.jpg)'),
+        sec('projects', 'lens', 'blue', 'right', 2, full=True, eyebrow='Real-world assets', title='Every tonne has a place.',
+            lede=['Each CRRT comes from a real removal project you can look into: where it is, who endorsed it, how much has been issued and how much is retired.'],
+            ctas=[{'label': 'Explore the ecosystem', 'href': 'ecosystem'}],
+            note='The kinds of removal behind CRRT. Endorsed projects are listed on the marketplace at launch.',
+            credit='Photos: Priyaflorenceshah, Sidoine Mbogni, Tim Brunauer / GIZ (CC BY-SA 4.0); Andy Waddington (CC BY-SA 2.0). Wikimedia Commons.'),
+        sec('token', 'facts', 'paper', 'hidden', 2, eyebrow='The token', title='TRCR, at a glance.', lede=['The airdrop and the QuickSwap launch are next. The token guide has the contract, how to buy and where every token sits.'], items=[
             {'k': 'Network', 'v': 'Base'}, {'k': 'Symbol', 'v': 'TRCR'},
             {'k': 'Supply', 'v': '12.5 billion', 'note': 'Minted once. No minting, ever. ' + TBC},
             {'k': 'Held in', 'v': 'Five Safes', 'note': 'Foundation, team, ecosystem, treasury, early backers.'}],
             ctas=[{'label': 'Token guide', 'href': 'token'}, {'label': 'Buy on QuickSwap', 'href': '@buy', 'ghost': True}]),
-        sec('governance', 'steps', 'blue', 'right', 4, full=True, eyebrow='Governance', title='Hold. Delegate. Vote. Execute.', items=[
+        sec('governance', 'steps', 'blue', 'hidden', 2, eyebrow='Governance', title='Hold. Delegate. Vote. Execute.', items=[
             {'title': 'Hold TRCR', 'body': 'Your tokens are your voting weight.'},
             {'title': 'Delegate', 'body': 'To yourself or someone you trust. Votes only count once delegated.'},
             {'title': 'Vote or propose', 'body': 'On Endorsers, payment tokens, the marketplace and upgrades.'},
             {'title': 'The Timelock executes', 'body': 'Passed proposals run on-chain after a delay. No back door.'}],
             ctas=[{'label': 'How governance works', 'href': 'governance', 'ghost': True}]),
-        sec('base', 'cta', 'blue', 'right', 5, full=True, eyebrow='Built on Base', title='Ethereum security, at cents a move.', lede=['Base is an Ethereum layer 2 incubated by Coinbase. New to it? The guide takes you from no wallet to holding TRCR in six steps.'],
+        sec('base', 'cta', 'blue', 'hidden', 2, eyebrow='Built on Base', title='Ethereum security, at cents a move.', lede=['Base is an Ethereum layer 2 incubated by Coinbase. New to it? The guide takes you from no wallet to holding TRCR in six steps.'],
             items=[], ctas=[{'label': 'How to Base', 'href': 'base'}]),
-        sec('ecosystem', 'cards', 'paper', 'right', 6, full=True, eyebrow='Ecosystem', title='Where to go next.', items=[
+        sec('ecosystem', 'cards', 'paper', 'hidden', 2, eyebrow='Ecosystem', title='Where to go next.', items=[
             {'title': 'Marketplace', 'body': 'Buy CRRT from endorsed projects.', 'status': 'Coming soon', 'href': '@carbonPioneers'},
             {'title': 'Carbon Impact Scan', 'body': 'Find your footprint, then remove it.', 'status': 'Coming soon', 'href': '@carbonPioneers'},
             {'title': 'Academy', 'body': 'Courses on buying carbon removal.', 'status': 'Later', 'href': '@carbonPioneers'},
             {'title': 'News', 'body': 'Carbon removal news and market insight.', 'status': 'Live', 'href': '@carbonPioneers'}],
             note='These live on Carbon Pioneers, the carbon side of the project.'),
-        sec('roadmap', 'cta', 'paper', 'right', 7, full=True, eyebrow='Roadmap', title='Built, tested, and next up.', lede=['The protocol is built and tested on testnet. Next: the airdrop, the QuickSwap launch and mainnet on Base.'], items=[],
+        sec('roadmap', 'cta', 'paper', 'hidden', 2, eyebrow='Roadmap', title='Built, tested, and next up.', lede=['The protocol is built and tested on testnet. Next: the airdrop, the QuickSwap launch and mainnet on Base.'], items=[],
             ctas=[{'label': 'See the roadmap', 'href': 'roadmap', 'ghost': True}]),
-        sec('faq', 'faq', 'paper', 'right', 8, full=True, eyebrow='FAQ · Ask Tracy', title='Questions? Ask Tracy.',
+        sec('faq', 'faq', 'paper', 'right', 3, full=True, eyebrow='FAQ · Ask Tracy', title='Questions? Ask Tracy.',
             lede=['Tracy is Tracer\'s guide, in the corner of every page. The questions people ask most are right here.'], limit=5, askTracy=True,
             ctas=[{'label': 'All questions', 'href': 'faq', 'ghost': True}]),
-        sec('join', 'cta', 'blue', 'right', 9, full=True, eyebrow='Take part', title='Hold it. Vote with it. Trace it.', ctas=[{'label': 'Buy TRCR', 'href': '@buy'}, {'label': 'Governance', 'href': 'governance', 'ghost': True}], chip=True),
+        sec('join', 'cta', 'blue', 'right', 4, full=True, eyebrow='Take part', title='Hold it. Vote with it. Trace it.', ctas=[{'label': 'Buy TRCR', 'href': '@buy'}, {'label': 'Governance', 'href': 'governance', 'ghost': True}], chip=True),
     ],
-    tags=[{'id': 'p1', 'k': 1, 'label': 'RWA', 'pos': 'mid'}, {'id': 'p2', 'k': 1, 'label': 'Base', 'pos': 'mid'}, {'id': 'p3', 'k': 1, 'label': 'DAO', 'pos': 'mid'}]
-    + tags_route(2) + tags_ring(3) + tags_loop(4) + [{'id': 'chain', 'k': 5, 'label': 'Base · Ethereum L2', 'flip': True}] + tags_hub(6) + tags_timeline(7),
-    )   # Tracy (k 8) is drawn by the line, then the line fills her blue areas (tracyFill)
+    tags=[{'id': 'd1l', 'k': 2, 'label': 'Mangroves', 'pos': 'down'}, {'id': 'd2l', 'k': 2, 'label': 'Reforestation', 'pos': 'down'},
+          {'id': 'd3l', 'k': 2, 'label': 'Enhanced weathering', 'pos': 'down'}, {'id': 'd4l', 'k': 2, 'label': 'Biochar', 'pos': 'down'}],
+    )   # Tracy (k 3) is drawn by the line, then the line fills her blue areas (tracyFill)
 
 # ---------------------------------------------------------------- token
 shapes = ['ring', 'wave', 'mark', 'ring', 'wave']

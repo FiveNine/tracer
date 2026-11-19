@@ -77,7 +77,7 @@ function builder() {
   const api = {
     nodes,
     /** add a stroke (array of [x,y] or [x,y,z]); vis 0..1 */
-    stroke(pts, vis = 1) { strokes.push({ pts: pts.map(p => [p[0], p[1], p[2] || 0]), vis }); return api; },
+    stroke(pts, vis = 1) { strokes.push({ pts: pts.map(p => [p[0], p[1], p[2] || 0]), vis, w: pts.map(p => p[3] ?? 1) }); return api; },
     node(id, x, y, z = 0) { nodes[id] = [x, y, z]; return api; },
     build(N) {
       // one list of segments: strokes, and travel between them
@@ -85,7 +85,8 @@ function builder() {
       let last = null;
       for (const s of strokes) {
         if (last) segs.push({ a: last, b: s.pts[0], vis: 0 });
-        for (let i = 0; i < s.pts.length - 1; i++) segs.push({ a: s.pts[i], b: s.pts[i + 1], vis: s.vis });
+        // a point's own weight (a 4th value) tapers a stroke, e.g. a line that fades in and out at its ends
+        for (let i = 0; i < s.pts.length - 1; i++) segs.push({ a: s.pts[i], b: s.pts[i + 1], vis: Math.max(0.002, s.vis * (s.w[i] + s.w[i + 1]) / 2) });
         last = s.pts[s.pts.length - 1];
       }
       // travel is sampled sparsely (it is invisible), strokes evenly; but every jump gets room for a few samples, or the
@@ -289,6 +290,61 @@ function timeline(ids, done = 2, vertical = false) {
   return b.stroke(pts, vis);
 }
 
+/** one tall, gently swaying stroke from above the screen to below it: the line that sweeps across a photo and
+    turns what it passes into tokens (the tokenize chapter). Its ends fade, so on short screens it never just stops. */
+function sweep() {
+  const b = builder(), pts = [], H = 4.2;
+  for (let k = 0; k <= 240; k++) {
+    const y = H - k / 240 * 2 * H, e = Math.min(1, (H - Math.abs(y)) / 1.1);
+    pts.push([Math.sin(y * 0.75 + 0.6) * 0.2 + Math.sin(y * 1.9) * 0.05, y, 0, e * e * (3 - 2 * e)]);
+  }
+  b.node('top', pts[0][0], H); b.node('mid', pts[120][0], 0);
+  return b.stroke(pts);
+}
+
+/** a thread through round windows: the line draws each window's rim on its way, then the photos open inside them
+    (the lens chapter). Circles: [x, y, r]; the connectors leave and meet each rim on a tangent, so nothing kinks. */
+function thread(discs = [[-1.25, -0.95, 0.62], [-0.15, 0.7, 0.98], [1.5, 1.12, 0.5], [1.38, -0.62, 0.72]], ids = ['d1', 'd2', 'd3', 'd4']) {
+  const b = builder(), out = [];
+  // clockwise round a circle, the tangent at angle a is (sin a, -cos a): the angle whose tangent points along d
+  const along = (dx, dy) => Math.atan2(dx, -dy);
+  const at = (c, a) => [c[0] + Math.cos(a) * c[2], c[1] + Math.sin(a) * c[2]];
+  const curve = (p0, t0, p1, t1, n = 40) => {
+    const L = Math.hypot(p1[0] - p0[0], p1[1] - p0[1]) * 0.42, r = [];
+    const c0 = [p0[0] + t0[0] * L, p0[1] + t0[1] * L], c1 = [p1[0] - t1[0] * L, p1[1] - t1[1] * L];
+    for (let k = 1; k <= n; k++) {
+      const t = k / n, u = 1 - t;
+      r.push([u * u * u * p0[0] + 3 * u * u * t * c0[0] + 3 * u * t * t * c1[0] + t * t * t * p1[0], u * u * u * p0[1] + 3 * u * u * t * c0[1] + 3 * u * t * t * c1[1] + t * t * t * p1[1]]);
+    }
+    return r;
+  };
+  const tan = a => [Math.sin(a), -Math.cos(a)];
+  // the line comes in from below left, fading up from nothing
+  const first = discs[0], aIn0 = along(0.45, 1);
+  const start = [first[0] - 1.05, first[1] - 1.5];
+  out.push(...curve(start, [0.4, 0.92], at(first, aIn0), tan(aIn0), 36).map((p, k) => [p[0], p[1], 0, Math.min(1, k / 18)]));
+  out.unshift([start[0], start[1], 0, 0]);
+  discs.forEach((c, i) => {
+    const next = discs[i + 1];
+    const aIn = i === 0 ? aIn0 : along(c[0] - discs[i - 1][0], c[1] - discs[i - 1][1]);
+    const aOut = next ? along(next[0] - c[0], next[1] - c[1]) : along(0.55, -1);
+    out.push(...orbit(c[0], c[1], c[2], aIn, aOut, -1, 96).slice(1));
+    if (next) {
+      const bIn = along(next[0] - c[0], next[1] - c[1]);
+      out.push(...curve(at(c, aOut), tan(aOut), at(next, bIn), tan(bIn), 48));
+    } else {   // and leaves towards the bottom right, fading out
+      const e0 = at(c, aOut), end = [e0[0] + 0.75, e0[1] - 1.35];
+      out.push(...curve(e0, tan(aOut), end, [0.45, -0.9], 36).map((p, k) => [p[0], p[1], 0, Math.max(0, 1 - k / 35)]));
+    }
+    b.node(ids[i], c[0], c[1]);
+    b.node(ids[i] + 'l', c[0], c[1] - c[2]);   // the caption hangs below the window
+  });
+  b.stroke(out);
+  b.smooth = 1;
+  b.discs = discs.map(([x, y, r]) => ({ x, y, r }));
+  return b;
+}
+
 /** a calm wave across the page (the quiet chapters) */
 function wave() {
   const b = builder(), pts = [];
@@ -302,7 +358,7 @@ function rule() {
   return b.stroke([[-4, 0], [4, 0]], 0.6);
 }
 
-export const LIBRARY = { word, mark, tracy, tracyArt, pillars, route, ring, loop, blocks, hub, timeline, wave, rule };
+export const LIBRARY = { word, mark, tracy, tracyArt, pillars, route, ring, loop, blocks, hub, timeline, sweep, thread, wave, rule };
 
 /** build a shape by spec: "route" or { kind: "timeline", ids: [...], done: 2 } */
 export function makeShape(spec, marks, N) {
@@ -316,13 +372,16 @@ export function makeShape(spec, marks, N) {
   else if (s.kind === 'tracyArt') b = tracyArt(marks, s.h);
   else if (s.kind === 'timeline') b = timeline(s.ids || ['m1', 'm2', 'm3', 'm4', 'm5', 'm6'], s.done ?? 2, s.vertical);
   else if (s.kind === 'blocks') b = blocks(s.n || 5, s.ids);
+  else if (s.kind === 'thread') b = thread(s.discs, s.ids);
   else b = f(s.ids);
   const out = b.build(N);
+  if (b.discs) out.discs = b.discs;
   // optional placement inside the shape's own frame
   const sc = s.scale || 1, dx = (s.at || [0, 0])[0], dy = (s.at || [0, 0])[1];
   if (sc !== 1 || dx || dy) {
     for (let i = 0; i < N; i++) { out.data[i * 4] = out.data[i * 4] * sc + dx; out.data[i * 4 + 1] = out.data[i * 4 + 1] * sc + dy; }
     for (const k in out.nodes) { const p = out.nodes[k]; out.nodes[k] = [p[0] * sc + dx, p[1] * sc + dy, p[2]]; }
+    if (out.discs) out.discs = out.discs.map(d => ({ x: d.x * sc + dx, y: d.y * sc + dy, r: d.r * sc }));
   }
   return out;
 }

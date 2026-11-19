@@ -223,7 +223,7 @@ export function createLine(app, o) {
     /** the u nearest to a screen point (CSS px), within maxPx, or -1 */
     nearest(x, y, maxPx = 70) {
       const k = Math.round(P.get('line.shape')), s = o.shapes[Math.max(0, Math.min(K - 1, k))];
-      if (!s) return -1;
+      if (!s || P.get('line.alpha') * api.fade < 0.25) return -1;   // a line that has stepped back can't be touched
       group.updateMatrixWorld();
       let best = -1, bd = maxPx * maxPx;
       for (let i = 0; i < N; i += 2) {

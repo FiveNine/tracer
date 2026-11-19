@@ -12,6 +12,8 @@ import { makeShape } from './scene/shapes.js';
 import { createLine } from './scene/line.js';
 import { createField } from './scene/field.js';
 import { createFill } from './scene/fill.js';
+import { createDiscs } from './scene/discs.js';
+import { createTokenize } from './scene/tokenize.js';
 
 const S = window.SITE, X = S.experience || {}, C = S.content;
 const PID = document.body.dataset.page || 'index';
@@ -23,7 +25,7 @@ const ld = loader(app, { min: PID === 'index' ? 700 : 250, exit: 600 });
 initText(app); cursor(app); autoHide(app, '[data-top]');
 app.facts = {
   genre: 'trace', look: (X.look || {}).preset || 'editorial',
-  signature: 'one line of light traces the Tracer wordmark, then re-routes itself into every chapter\'s diagram (the RWA route, the five Safes, the governance loop, Base blocks, the ecosystem hub, the roadmap); touch the line and a signal runs along it',
+  signature: 'one line of light traces the Tracer wordmark, then sweeps across a photo of real carbon removal and turns what it passes into a dot screen (one dot, one gram), threads round windows onto removal projects, and draws Tracy; touch the line and a signal runs along it',
   interactions: ['touch the line: a signal runs both ways from the touch', 'the line moves aside for the pointer', '"Send a trace" button (keyboard alternative)', 'copy the contract address', 'add TRCR to a wallet', 'FAQ search', 'Tracy: answers from the FAQ'],
   sound: 'none (the client asked for a calm, clear site)'
 };
@@ -59,6 +61,14 @@ async function build() {
   line = createLine(app, { N, shapes, colors: { blue: colors.blue, paper: colors.paper, hotOnBlue: colors.hotOnBlue, hotOnPaper: colors.hotOnPaper } });
   // shapes with solid areas ({ kind, fill: '<marks key>' }): the line fills them in its own colour once drawn
   XP.shapes.forEach((sp, k) => { if (sp && sp.fill && marks[sp.fill]) createFill(app, line, { k, regions: marks[sp.fill], h: sp.h, blue: colors.blue }); });
+  // photos: round windows the line threads through ({ kind: 'thread', photos }), and the photo the line tokenizes
+  // as it sweeps across it ({ kind: 'sweep', photo, from, to })
+  const jobs = [];
+  XP.shapes.forEach((sp, k) => {
+    if (sp && sp.photos && shapes[k].discs) jobs.push(createDiscs(app, line, { k, discs: shapes[k].discs, photos: sp.photos.map(p => 'assets/' + p) }));
+    if (sp && sp.photo) jobs.push(createTokenize(app, line, { k, src: 'assets/' + sp.photo, el: document.querySelector('[data-tok]'), from: sp.from, to: sp.to, nFrom: sp.nFrom, nTo: sp.nTo, blue: colors.blue, paper: colors.paper }));
+  });
+  await Promise.all(jobs);
   app.camera.position.set(0, 0, 11.3);
   // a breath of depth: the camera leans with the pointer
   let cx = 0, cy = 0;
@@ -118,7 +128,7 @@ function labels() {
 // the whole line steps back together, smoothly; its labels and artwork with it. No patches, no boxes.
 function occlusion() {
   if (!line) return;
-  const blocks = [...document.querySelectorAll('.sec-in > :not([data-stage]), .foot-top > *, .foot-cols')];   // the hero's reserved box is the line's, not copy
+  const blocks = [...document.querySelectorAll('.sec-in > :not([data-stage]):not([data-tok]), .tok-copy > *, .foot-top > *, .foot-cols')];   // the hero's reserved box is the line's, not copy; in the pinned photo chapter only its copy counts
   const box = {};
   let fade = 1;
   app.add((t, dt) => {

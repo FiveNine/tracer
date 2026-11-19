@@ -1,7 +1,7 @@
 /*
  * trace: a multi-page site drawn by one line of light. render() writes every page as its own HTML file; each page's
- * sections are typed blocks (hero, pillars, steps, facts, safes, cards, timeline, team, faq, params, prose, contact,
- * cta) and each section names the world's tone (blue | paper) and where the line sits (stage).
+ * sections are typed blocks (hero, tokenize, lens, pillars, steps, facts, safes, cards, timeline, team, faq, params, prose,
+ * contact, cta) and each section names the world's tone (blue | paper) and where the line sits (stage).
  * The line's shapes and scroll keys per page live in experience.pages[page].
  */
 import { page, esc } from '../_shared/render-utils.mjs';
@@ -60,6 +60,21 @@ const KINDS = {
       ${ctas(s.ctas, c)}
       ${s.chip ? contractChip(c, 'hero-chip') : ''}
       ${s.trace ? `<button type="button" class="trace-btn" data-trace>${esc(s.trace)}</button>` : ''}`;
+  },
+  // a pinned chapter: a photo the line sweeps across, turning it into dots (scene/tokenize.js); the steps light up in turn
+  tokenize(s, c) {
+    return `<div class="tok" data-tok>
+      <div class="tok-stage" data-tok-stage aria-hidden="true"></div>
+      <div class="tok-copy">${head(s)}
+        <ol class="tok-steps">${s.items.map((it, i) => `<li data-tok-step${i ? '' : ' class="is-on"'}><span class="n">${String(i + 1).padStart(2, '0')}</span><div><b>${esc(it.title)}</b>${paras(it.body)}</div></li>`).join('')}</ol>
+      </div>
+      ${s.counter ? `<div class="tok-count" aria-hidden="true"><b data-tok-n>0</b><span>${esc(s.counter)}</span></div>` : ''}
+      ${s.credit ? `<p class="credit">${md(s.credit)}</p>` : ''}
+    </div>`;
+  },
+  // round windows onto removal projects, threaded on the line (scene/discs.js); their captions are tags
+  lens(s, c) {
+    return `${head(s)}${ctas(s.ctas, c)}${s.note ? `<p class="note" data-reveal="fade">${md(s.note)}</p>` : ''}${s.credit ? `<p class="credit">${md(s.credit)}</p>` : ''}`;
   },
   pillars(s, c) {
     return `${head(s)}<ol class="pillars">${s.items.map((it, i) => `

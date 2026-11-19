@@ -483,39 +483,15 @@
       "stageBox": true
      },
      {
-      "id": "pillars",
-      "kind": "pillars",
-      "tone": "blue",
-      "stage": "right",
-      "full": true,
-      "eyebrow": "Tracer in three lines",
-      "title": "Three things to know.",
-      "items": [
-       {
-        "title": "A real-world asset project",
-        "body": "Every CRRT stands for endorsed carbon removal, down to the gram.",
-        "href": "ecosystem"
-       },
-       {
-        "title": "Built on Base",
-        "body": "A fast, low-cost Ethereum layer 2. One wallet, cents per transaction.",
-        "href": "base"
-       },
-       {
-        "title": "Run by its holders",
-        "body": "TRCR holders propose and vote on how the protocol runs.",
-        "href": "governance"
-       }
-      ]
-     },
-     {
       "id": "rwa",
-      "kind": "steps",
-      "tone": "paper",
-      "stage": "right",
-      "full": true,
+      "kind": "tokenize",
+      "tone": "blue",
+      "stage": "none",
       "eyebrow": "How the RWA works",
-      "title": "From a removal project to a retired tonne.",
+      "title": "The world, made on-chain.",
+      "lede": [
+       "Where the line passes, verified carbon removal becomes **CRRT**: an asset on Base you can hold, trade and retire. Every dot is a gram."
+      ],
       "items": [
        {
         "title": "Licensed and endorsed",
@@ -534,20 +510,34 @@
         "body": "Send CRRT into a Rabbit and it is retired for good, with its beneficiary on record."
        }
       ],
+      "counter": "grams on-chain · 1,000,000 = one tonne",
+      "credit": "Photo: biochar, Tim Brunauer / GIZ, [CC BY-SA 4.0](https://commons.wikimedia.org/wiki/File:Charged_and_inoculated_biochar_ready_for_soil_application.jpg)"
+     },
+     {
+      "id": "projects",
+      "kind": "lens",
+      "tone": "blue",
+      "stage": "right",
+      "full": true,
+      "eyebrow": "Real-world assets",
+      "title": "Every tonne has a place.",
+      "lede": [
+       "Each CRRT comes from a real removal project you can look into: where it is, who endorsed it, how much has been issued and how much is retired."
+      ],
       "ctas": [
        {
         "label": "Explore the ecosystem",
-        "href": "ecosystem",
-        "ghost": true
+        "href": "ecosystem"
        }
-      ]
+      ],
+      "note": "The kinds of removal behind CRRT. Endorsed projects are listed on the marketplace at launch.",
+      "credit": "Photos: Priyaflorenceshah, Sidoine Mbogni, Tim Brunauer / GIZ (CC BY-SA 4.0); Andy Waddington (CC BY-SA 2.0). Wikimedia Commons."
      },
      {
       "id": "token",
       "kind": "facts",
       "tone": "paper",
-      "stage": "right",
-      "full": true,
+      "stage": "none",
       "eyebrow": "The token",
       "title": "TRCR, at a glance.",
       "lede": [
@@ -589,8 +579,7 @@
       "id": "governance",
       "kind": "steps",
       "tone": "blue",
-      "stage": "right",
-      "full": true,
+      "stage": "none",
       "eyebrow": "Governance",
       "title": "Hold. Delegate. Vote. Execute.",
       "items": [
@@ -623,8 +612,7 @@
       "id": "base",
       "kind": "cta",
       "tone": "blue",
-      "stage": "right",
-      "full": true,
+      "stage": "none",
       "eyebrow": "Built on Base",
       "title": "Ethereum security, at cents a move.",
       "lede": [
@@ -642,8 +630,7 @@
       "id": "ecosystem",
       "kind": "cards",
       "tone": "paper",
-      "stage": "right",
-      "full": true,
+      "stage": "none",
       "eyebrow": "Ecosystem",
       "title": "Where to go next.",
       "items": [
@@ -678,8 +665,7 @@
       "id": "roadmap",
       "kind": "cta",
       "tone": "paper",
-      "stage": "right",
-      "full": true,
+      "stage": "none",
       "eyebrow": "Roadmap",
       "title": "Built, tested, and next up.",
       "lede": [
@@ -739,182 +725,28 @@
     ],
     "tags": [
      {
-      "id": "p1",
-      "k": 1,
-      "label": "RWA",
-      "pos": "mid"
-     },
-     {
-      "id": "p2",
-      "k": 1,
-      "label": "Base",
-      "pos": "mid"
-     },
-     {
-      "id": "p3",
-      "k": 1,
-      "label": "DAO",
-      "pos": "mid"
-     },
-     {
-      "id": "s1",
+      "id": "d1l",
       "k": 2,
-      "label": "01 Project",
-      "pos": "up"
+      "label": "Mangroves",
+      "pos": "down"
      },
      {
-      "id": "s2",
+      "id": "d2l",
       "k": 2,
-      "label": "02 CRRT",
-      "pos": "up"
+      "label": "Reforestation",
+      "pos": "down"
      },
      {
-      "id": "s3",
+      "id": "d3l",
       "k": 2,
-      "label": "03 Market",
-      "pos": "up"
+      "label": "Enhanced weathering",
+      "pos": "down"
      },
      {
-      "id": "s4",
+      "id": "d4l",
       "k": 2,
-      "label": "04 Rabbit",
+      "label": "Biochar",
       "pos": "down"
-     },
-     {
-      "id": "f1",
-      "k": 3,
-      "label": "Foundation",
-      "pos": "up"
-     },
-     {
-      "id": "f2",
-      "k": 3,
-      "label": "Team & advisors",
-      "pos": "down"
-     },
-     {
-      "id": "f3",
-      "k": 3,
-      "label": "Ecosystem",
-      "pos": "down"
-     },
-     {
-      "id": "f4",
-      "k": 3,
-      "label": "Treasury",
-      "pos": "down"
-     },
-     {
-      "id": "f5",
-      "k": 3,
-      "label": "Early backers",
-      "pos": "up"
-     },
-     {
-      "id": "ringc",
-      "k": 3,
-      "label": "TRCR",
-      "pos": "mid"
-     },
-     {
-      "id": "g1",
-      "k": 4,
-      "label": "Hold",
-      "pos": "up"
-     },
-     {
-      "id": "g2",
-      "k": 4,
-      "label": "Delegate",
-      "pos": "up"
-     },
-     {
-      "id": "g3",
-      "k": 4,
-      "label": "Vote",
-      "pos": "down"
-     },
-     {
-      "id": "g4",
-      "k": 4,
-      "label": "Execute",
-      "pos": "down"
-     },
-     {
-      "id": "chain",
-      "k": 5,
-      "label": "Base · Ethereum L2",
-      "flip": true
-     },
-     {
-      "id": "e1",
-      "k": 6,
-      "label": "Marketplace",
-      "pos": "up"
-     },
-     {
-      "id": "e2",
-      "k": 6,
-      "label": "Impact Scan",
-      "pos": "up"
-     },
-     {
-      "id": "e3",
-      "k": 6,
-      "label": "Academy",
-      "pos": "down"
-     },
-     {
-      "id": "e4",
-      "k": 6,
-      "label": "News",
-      "pos": "down"
-     },
-     {
-      "id": "hub",
-      "k": 6,
-      "label": "Carrot",
-      "pos": "mid"
-     },
-     {
-      "id": "m1",
-      "k": 7,
-      "label": "Testnet"
-     },
-     {
-      "id": "m2",
-      "k": 7,
-      "label": "Website"
-     },
-     {
-      "id": "m3",
-      "k": 7,
-      "label": "Airdrop"
-     },
-     {
-      "id": "m4",
-      "k": 7,
-      "label": "QuickSwap"
-     },
-     {
-      "id": "m5",
-      "k": 7,
-      "label": "Mainnet"
-     },
-     {
-      "id": "m6",
-      "k": 7,
-      "label": "Marketplace"
-     },
-     {
-      "id": "m7",
-      "k": 7,
-      "label": "Impact Scan"
-     },
-     {
-      "id": "m8",
-      "k": 7,
-      "label": "Academy"
      }
     ],
     "art": []
@@ -2139,26 +1971,22 @@
    "index": {
     "shapes": [
      "word",
-     "pillars",
-     "route",
-     "ring",
-     "loop",
-     "blocks",
-     "hub",
      {
-      "kind": "timeline",
-      "ids": [
-       "m1",
-       "m2",
-       "m3",
-       "m4",
-       "m5",
-       "m6",
-       "m7",
-       "m8"
-      ],
-      "done": 2,
-      "vertical": true
+      "kind": "sweep",
+      "photo": "photos/biochar.webp",
+      "from": 0.78,
+      "to": 0.02,
+      "nFrom": 0.8,
+      "nTo": -0.55
+     },
+     {
+      "kind": "thread",
+      "photos": [
+       "photos/mangrove-disc.webp",
+       "photos/forest-disc.webp",
+       "photos/basalt-disc.webp",
+       "photos/biochar-disc.webp"
+      ]
      },
      {
       "kind": "tracyArt",
@@ -2187,46 +2015,55 @@
       }
      },
      {
-      "at": "#pillars",
+      "at": "#rwa",
       "set": {
-       "line.x": 0.5,
+       "line.x": 0.78,
        "line.y": 0,
-       "line.s": 0.704,
+       "line.s": 1,
        "line.alpha": 1,
-       "pulse.amt": 0.8,
-       "line.ry": 0.16,
-       "line.rx": 0.06,
+       "pulse.amt": 0.7,
+       "line.ry": 0,
+       "line.rx": 0,
        "line.shape": 1,
        "tone": 0
       },
       "narrow": {
-       "line.x": 0,
-       "line.y": 0.46,
-       "line.s": 0.389,
-       "line.ry": 0.064,
-       "line.rx": 0
+       "line.x": 0.8,
+       "line.y": -0.5,
+       "line.s": 0.42
       },
       "shift": "-18vh",
       "hold": 0.45
      },
      {
       "at": "#rwa",
+      "offset": 0.6,
+      "ease": "linear",
+      "set": {
+       "line.x": 0.02
+      },
+      "narrow": {
+       "line.x": -0.55
+      }
+     },
+     {
+      "at": "#projects",
       "set": {
        "line.x": 0.5,
        "line.y": 0,
-       "line.s": 0.623,
+       "line.s": 0.93,
        "line.alpha": 1,
        "pulse.amt": 0.8,
-       "line.ry": -0.16,
+       "line.ry": 0.1,
        "line.rx": 0.06,
        "line.shape": 2,
-       "tone": 1
+       "tone": 0
       },
       "narrow": {
        "line.x": 0,
-       "line.y": 0.46,
-       "line.s": 0.344,
-       "line.ry": -0.064,
+       "line.y": 0.47,
+       "line.s": 0.48,
+       "line.ry": 0.04000000000000001,
        "line.rx": 0
       },
       "shift": "-18vh",
@@ -2235,22 +2072,13 @@
      {
       "at": "#token",
       "set": {
-       "line.x": 0.5,
-       "line.y": 0,
-       "line.s": 1.0,
-       "line.alpha": 1,
-       "pulse.amt": 0.8,
-       "line.ry": 0.16,
-       "line.rx": 0.06,
-       "line.shape": 3,
-       "tone": 1
-      },
-      "narrow": {
        "line.x": 0,
-       "line.y": 0.46,
-       "line.s": 0.556,
-       "line.ry": 0.064,
-       "line.rx": 0
+       "line.y": -0.82,
+       "line.s": 1,
+       "line.alpha": 0,
+       "pulse.amt": 0,
+       "line.shape": 2,
+       "tone": 1
       },
       "shift": "-18vh",
       "hold": 0.45
@@ -2258,22 +2086,13 @@
      {
       "at": "#governance",
       "set": {
-       "line.x": 0.5,
-       "line.y": 0,
-       "line.s": 0.884,
-       "line.alpha": 1,
-       "pulse.amt": 0.8,
-       "line.ry": -0.16,
-       "line.rx": 0.06,
-       "line.shape": 4,
-       "tone": 0
-      },
-      "narrow": {
        "line.x": 0,
-       "line.y": 0.46,
-       "line.s": 0.488,
-       "line.ry": -0.064,
-       "line.rx": 0
+       "line.y": -0.82,
+       "line.s": 1,
+       "line.alpha": 0,
+       "pulse.amt": 0,
+       "line.shape": 2,
+       "tone": 0
       },
       "shift": "-18vh",
       "hold": 0.45
@@ -2281,22 +2100,13 @@
      {
       "at": "#base",
       "set": {
-       "line.x": 0.5,
-       "line.y": 0,
-       "line.s": 0.809,
-       "line.alpha": 1,
-       "pulse.amt": 0.8,
-       "line.ry": 0.16,
-       "line.rx": 0.06,
-       "line.shape": 5,
-       "tone": 0
-      },
-      "narrow": {
        "line.x": 0,
-       "line.y": 0.46,
-       "line.s": 0.447,
-       "line.ry": 0.064,
-       "line.rx": 0
+       "line.y": -0.82,
+       "line.s": 1,
+       "line.alpha": 0,
+       "pulse.amt": 0,
+       "line.shape": 2,
+       "tone": 0
       },
       "shift": "-18vh",
       "hold": 0.45
@@ -2304,22 +2114,13 @@
      {
       "at": "#ecosystem",
       "set": {
-       "line.x": 0.5,
-       "line.y": 0,
-       "line.s": 0.844,
-       "line.alpha": 1,
-       "pulse.amt": 0.8,
-       "line.ry": -0.16,
-       "line.rx": 0.06,
-       "line.shape": 6,
-       "tone": 1
-      },
-      "narrow": {
        "line.x": 0,
-       "line.y": 0.46,
-       "line.s": 0.467,
-       "line.ry": -0.064,
-       "line.rx": 0
+       "line.y": -0.82,
+       "line.s": 1,
+       "line.alpha": 0,
+       "pulse.amt": 0,
+       "line.shape": 2,
+       "tone": 1
       },
       "shift": "-18vh",
       "hold": 0.45
@@ -2327,22 +2128,13 @@
      {
       "at": "#roadmap",
       "set": {
-       "line.x": 0.5,
-       "line.y": 0,
-       "line.s": 0.638,
-       "line.alpha": 1,
-       "pulse.amt": 0.8,
-       "line.ry": 0.16,
-       "line.rx": 0.06,
-       "line.shape": 7,
-       "tone": 1
-      },
-      "narrow": {
        "line.x": 0,
-       "line.y": 0.46,
-       "line.s": 0.345,
-       "line.ry": 0.064,
-       "line.rx": 0
+       "line.y": -0.82,
+       "line.s": 1,
+       "line.alpha": 0,
+       "pulse.amt": 0,
+       "line.shape": 2,
+       "tone": 1
       },
       "shift": "-18vh",
       "hold": 0.45
@@ -2357,7 +2149,7 @@
        "pulse.amt": 0.8,
        "line.ry": 0,
        "line.rx": 0,
-       "line.shape": 8,
+       "line.shape": 3,
        "tone": 1
       },
       "narrow": {
@@ -2378,16 +2170,16 @@
        "line.s": 1.0,
        "line.alpha": 1,
        "pulse.amt": 0.8,
-       "line.ry": 0.16,
+       "line.ry": -0.16,
        "line.rx": 0.06,
-       "line.shape": 9,
+       "line.shape": 4,
        "tone": 0
       },
       "narrow": {
        "line.x": 0,
        "line.y": 0.46,
        "line.s": 0.667,
-       "line.ry": 0.064,
+       "line.ry": -0.064,
        "line.rx": 0
       },
       "shift": "-18vh",
@@ -2403,16 +2195,16 @@
        "line.s": 1.0,
        "line.alpha": 0.18,
        "pulse.amt": 0.3,
-       "line.ry": 0.16,
+       "line.ry": -0.16,
        "line.rx": 0.06,
-       "line.shape": 9,
+       "line.shape": 4,
        "tone": 0
       },
       "narrow": {
        "line.x": 0,
        "line.y": 0.46,
        "line.s": 0.667,
-       "line.ry": 0.064,
+       "line.ry": -0.064,
        "line.rx": 0,
        "line.alpha": 0.08
       }
