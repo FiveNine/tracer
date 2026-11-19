@@ -1,0 +1,416 @@
+"""Write sites/tracer/site.json: the copy (from the structure brief), the marks and the line's scroll keys.
+
+  python3 make-site.py
+
+Keys are made from each section's stage so every page reads the same way: the line arrives as a section's top
+passes 40% of the screen, holds while it is read, then re-routes for the next one.
+"""
+import json, os
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+marks = json.load(open(os.path.join(HERE, 'marks-svg.json')))
+
+TBC = '{tbc}'
+LINKS = {
+    'buy': {'label': 'Buy TRCR', 'href': 'https://quickswap.exchange/'},          # referral link: Luc is checking with QuickSwap
+    'explorer': {'label': 'Basescan', 'href': 'https://basescan.org'},
+    'base': {'label': 'base.org', 'href': 'https://base.org'},
+    'carbonPioneers': {'label': 'Carbon Pioneers', 'href': 'https://endglobalwarming.net'},
+    'docs': {'label': 'Docs', 'href': 'https://docs.endglobalwarming.net'},
+}
+
+# ---- the line's shapes: natural width (world units) for fitting ----
+WIDTH = {'tracy': 3.05, 'word': 6.15, 'pillars': 5.4, 'route': 6.1, 'ring': 3.6, 'loop': 4.3, 'blocks': 4.7, 'hub': 4.5, 'timeline': 2.2, 'mark': 1.95, 'wave': 14, 'rule': 8}
+HEIGHT = {'tracy': 3.6, 'word': 1.3, 'pillars': 1.5, 'route': 2.7, 'ring': 3.6, 'loop': 3.2, 'blocks': 2.0, 'hub': 3.0, 'timeline': 5.8, 'mark': 3.0, 'wave': .5, 'rule': .1}
+
+
+def kind(s):
+    return s if isinstance(s, str) else s['kind']
+
+
+def pose(stage, shape, k, tone):
+    """params for one section: where the line sits and how big it is"""
+    w, h = WIDTH[kind(shape)], HEIGHT[kind(shape)]
+    t = 0 if tone == 'blue' else 1
+    if stage == 'hero':      # the wordmark, centred above the headline
+        d = {'line.x': 0, 'line.y': .5, 'line.s': .9, 'line.alpha': 1, 'pulse.amt': .9, 'line.ry': 0, 'line.rx': 0}
+        n = {'line.x': 0, 'line.y': .45, 'line.s': round(2.25 / w, 3)}
+    elif stage in ('right', 'left'):
+        s = round(min(1.0, 3.8 / w, 3.7 / h), 3)
+        tilt = .16 if k % 2 else -.16      # alternate, so the line sways in depth from chapter to chapter
+        d = {'line.x': .5 if stage == 'right' else -.5, 'line.y': 0, 'line.s': s, 'line.alpha': 1, 'pulse.amt': .8, 'line.ry': tilt, 'line.rx': .06}
+        n = {'line.x': 0, 'line.y': .46, 'line.s': round(min(2.1 / w, 2.0 / h), 3), 'line.ry': tilt * .4, 'line.rx': 0}
+    elif stage == 'quiet':   # a calm wave along the foot of the screen behind long reads
+        d = {'line.x': 0, 'line.y': -.82, 'line.s': 1, 'line.alpha': .45, 'pulse.amt': .35, 'line.ry': 0, 'line.rx': 0}
+        n = {'line.y': -.9}
+    else:                    # hidden
+        d = {'line.x': 0, 'line.y': -.82, 'line.s': 1, 'line.alpha': 0, 'pulse.amt': 0}
+        n = {}
+    d.update({'line.shape': k, 'tone': t})
+    return d, n
+
+
+def keys_of(sections, shapes, cta_tone='blue'):
+    out = []
+    for i, s in enumerate(sections):
+        d, n = pose(s['_stage'], shapes[s['_k']], s['_k'], s.get('tone', 'paper'))
+        k = {'at': '#' + s['id'], 'set': d}
+        if n: k['narrow'] = n
+        if i > 0: k.update({'shift': '-18vh', 'hold': .45})   # arrives as the section settles into view
+        out.append(k)
+    last = sections[-1]
+    d, n = pose(last['_stage'], shapes[last['_k']], last['_k'], 'blue')
+    d = dict(d, **{'line.alpha': .18, 'pulse.amt': .3})   # the footer: the mark steps back behind the links
+    out.append({'at': '#footer', 'shift': '-60vh', 'hold': .2, 'set': d, **({'narrow': dict(n, **{'line.alpha': .08})} if n else {})})
+    return out
+
+
+def sec(id, kind_, tone, stage, k, **kw):
+    """a section: its kind of block, the world's tone, the line's stage (hero|right|left|quiet|hidden) and shape index"""
+    css_stage = {'hero': 'center', 'right': 'right', 'left': 'left', 'quiet': 'none', 'hidden': 'none'}[stage]
+    d = {'id': id, 'kind': kind_, 'tone': tone, 'stage': css_stage, '_stage': stage, '_k': k}
+    d.update(kw)
+    return d
+
+
+def page(title, description, shapes, sections, tags=(), art=()):
+    keys = keys_of(sections, shapes)
+    for s in sections:
+        s.pop('_stage'); s.pop('_k')
+    return {'title': title, 'description': description, 'sections': sections, 'tags': list(tags), 'art': list(art)}, {'shapes': shapes, 'keys': keys}
+
+
+TL_IDS = ['m1', 'm2', 'm3', 'm4', 'm5', 'm6', 'm7', 'm8']
+TL_LABELS = ['Testnet', 'Website', 'Airdrop', 'QuickSwap', 'Mainnet', 'Marketplace', 'Impact Scan', 'Academy']
+SAFES = [('f1', 'Foundation', 'up'), ('f2', 'Team & advisors', 'down'), ('f3', 'Ecosystem', 'down'), ('f4', 'Treasury', 'down'), ('f5', 'Early backers', 'up')]
+
+
+def tags_ring(k):
+    return [{'id': i, 'k': k, 'label': l, **({'flip': True} if f == 'flip' else {'pos': f} if f else {})} for i, l, f in SAFES] + [{'id': 'ringc', 'k': k, 'label': 'TRCR', 'pos': 'mid'}]
+
+
+def tags_route(k):
+    return [{'id': 's1', 'k': k, 'label': '01 Project', 'pos': 'up'}, {'id': 's2', 'k': k, 'label': '02 CRRT', 'pos': 'up'}, {'id': 's3', 'k': k, 'label': '03 Market', 'pos': 'up'}, {'id': 's4', 'k': k, 'label': '04 Rabbit', 'pos': 'down'}]
+
+
+def tags_loop(k):
+    return [{'id': 'g1', 'k': k, 'label': 'Hold', 'pos': 'up'}, {'id': 'g2', 'k': k, 'label': 'Delegate', 'pos': 'up'}, {'id': 'g3', 'k': k, 'label': 'Vote', 'pos': 'down'}, {'id': 'g4', 'k': k, 'label': 'Execute', 'pos': 'down'}]
+
+
+def tags_hub(k):
+    return [{'id': 'e1', 'k': k, 'label': 'Marketplace', 'pos': 'up'}, {'id': 'e2', 'k': k, 'label': 'Impact Scan', 'pos': 'up'}, {'id': 'e3', 'k': k, 'label': 'Academy', 'pos': 'down'}, {'id': 'e4', 'k': k, 'label': 'News', 'pos': 'down'}, {'id': 'hub', 'k': k, 'label': 'Carrot', 'pos': 'mid'}]
+
+
+def tags_timeline(k):
+    return [{'id': i, 'k': k, 'label': l} for i, l in zip(TL_IDS, TL_LABELS)]   # vertical run: labels to the right
+
+
+pages, xpages = {}, {}
+
+# ---------------------------------------------------------------- home
+shapes = ['word', 'pillars', 'route', 'ring', 'loop', 'blocks', 'hub', {'kind': 'timeline', 'ids': TL_IDS, 'done': 2, 'vertical': True}, 'tracy', 'mark']
+pages['index'], xpages['index'] = page(
+    'Tracer: carbon removal, traced on-chain', 'Tracer is a real-world asset project on Base. TRCR holders govern the Carrot protocol, where verified carbon removal is issued, traded and retired on-chain.',
+    shapes, [
+        sec('hero', 'hero', 'blue', 'hero', 0, full=True, eyebrow='Real-world assets · Built on Base', title='Carbon removal, traced on-chain.',
+            lede=['Tracer governs the Carrot protocol, where verified carbon removal becomes an on-chain asset on Base and is retired for good. **TRCR** is how you take part.'],
+            ctas=[{'label': 'Buy TRCR', 'href': '@buy'}, {'label': 'Read the token guide', 'href': 'token', 'ghost': True}], chip=True, trace='Touch the line, or send a trace'),
+        sec('pillars', 'pillars', 'blue', 'right', 1, full=True, eyebrow='Tracer in three lines', title='Three things to know.', items=[
+            {'title': 'A real-world asset project', 'body': 'Every CRRT stands for endorsed carbon removal, down to the gram.', 'href': 'ecosystem'},
+            {'title': 'Built on Base', 'body': 'A fast, low-cost Ethereum layer 2. One wallet, cents per transaction.', 'href': 'base'},
+            {'title': 'Run by its holders', 'body': 'TRCR holders propose and vote on how the protocol runs.', 'href': 'governance'}]),
+        sec('rwa', 'steps', 'paper', 'right', 2, full=True, eyebrow='How the RWA works', title='From a removal project to a retired tonne.', items=[
+            {'title': 'Licensed and endorsed', 'body': 'Endorsers admitted by the DAO license removal projects and endorse their credits.'},
+            {'title': 'Issued as CRRT', 'body': 'Projects issue CRRT against endorsed removal. One slice is one gram; a million slices is a tonne.'},
+            {'title': 'Bought on the marketplace', 'body': 'Fixed-price listings in admitted stablecoins. No protocol fees.'},
+            {'title': 'Retired in a Rabbit', 'body': 'Send CRRT into a Rabbit and it is retired for good, with its beneficiary on record.'}],
+            ctas=[{'label': 'Explore the ecosystem', 'href': 'ecosystem', 'ghost': True}]),
+        sec('token', 'facts', 'paper', 'right', 3, full=True, eyebrow='The token', title='TRCR, at a glance.', lede=['The airdrop and the QuickSwap launch are next. The token guide has the contract, how to buy and where every token sits.'], items=[
+            {'k': 'Network', 'v': 'Base'}, {'k': 'Symbol', 'v': 'TRCR'},
+            {'k': 'Supply', 'v': '12.5 billion', 'note': 'Minted once. No minting, ever. ' + TBC},
+            {'k': 'Held in', 'v': 'Five Safes', 'note': 'Foundation, team, ecosystem, treasury, early backers.'}],
+            ctas=[{'label': 'Token guide', 'href': 'token'}, {'label': 'Buy on QuickSwap', 'href': '@buy', 'ghost': True}]),
+        sec('governance', 'steps', 'blue', 'right', 4, full=True, eyebrow='Governance', title='Hold. Delegate. Vote. Execute.', items=[
+            {'title': 'Hold TRCR', 'body': 'Your tokens are your voting weight.'},
+            {'title': 'Delegate', 'body': 'To yourself or someone you trust. Votes only count once delegated.'},
+            {'title': 'Vote or propose', 'body': 'On Endorsers, payment tokens, the marketplace and upgrades.'},
+            {'title': 'The Timelock executes', 'body': 'Passed proposals run on-chain after a delay. No back door.'}],
+            ctas=[{'label': 'How governance works', 'href': 'governance', 'ghost': True}]),
+        sec('base', 'cta', 'blue', 'right', 5, full=True, eyebrow='Built on Base', title='Ethereum security, at cents a move.', lede=['Base is an Ethereum layer 2 incubated by Coinbase. New to it? The guide takes you from no wallet to holding TRCR in six steps.'],
+            items=[], ctas=[{'label': 'How to Base', 'href': 'base'}]),
+        sec('ecosystem', 'cards', 'paper', 'right', 6, full=True, eyebrow='Ecosystem', title='Where to go next.', items=[
+            {'title': 'Marketplace', 'body': 'Buy CRRT from endorsed projects.', 'status': 'Coming soon', 'href': '@carbonPioneers'},
+            {'title': 'Carbon Impact Scan', 'body': 'Find your footprint, then remove it.', 'status': 'Coming soon', 'href': '@carbonPioneers'},
+            {'title': 'Academy', 'body': 'Courses on buying carbon removal.', 'status': 'Later', 'href': '@carbonPioneers'},
+            {'title': 'News', 'body': 'Carbon removal news and market insight.', 'status': 'Live', 'href': '@carbonPioneers'}],
+            note='These live on Carbon Pioneers, the carbon side of the project.'),
+        sec('roadmap', 'cta', 'paper', 'right', 7, full=True, eyebrow='Roadmap', title='Built, tested, and next up.', lede=['The protocol is built and tested on testnet. Next: the airdrop, the QuickSwap launch and mainnet on Base.'], items=[],
+            ctas=[{'label': 'See the roadmap', 'href': 'roadmap', 'ghost': True}]),
+        sec('faq', 'faq', 'paper', 'right', 8, full=True, eyebrow='FAQ · Ask Tracy', title='Questions? Ask Tracy.',
+            lede=['Tracy is Tracer\'s guide, in the corner of every page. The questions people ask most are right here.'], limit=5, askTracy=True,
+            ctas=[{'label': 'All questions', 'href': 'faq', 'ghost': True}]),
+        sec('join', 'cta', 'blue', 'right', 9, full=True, eyebrow='Take part', title='Hold it. Vote with it. Trace it.', ctas=[{'label': 'Buy TRCR', 'href': '@buy'}, {'label': 'Governance', 'href': 'governance', 'ghost': True}], chip=True),
+    ],
+    tags=[{'id': 'p1', 'k': 1, 'label': 'RWA', 'pos': 'mid'}, {'id': 'p2', 'k': 1, 'label': 'Base', 'pos': 'mid'}, {'id': 'p3', 'k': 1, 'label': 'DAO', 'pos': 'mid'}]
+    + tags_route(2) + tags_ring(3) + tags_loop(4) + [{'id': 'chain', 'k': 5, 'label': 'Base · Ethereum L2', 'flip': True}] + tags_hub(6) + tags_timeline(7),
+    art=[{'k': 8, 'src': 'tracy-line.png'}])
+
+# ---------------------------------------------------------------- token
+shapes = ['ring', 'wave', 'mark', 'ring', 'wave']
+pages['token'], xpages['token'] = page(
+    'TRCR token: contract, airdrop, how to buy · Tracer', 'The official TRCR guide: contract address, how to buy on QuickSwap, the airdrop on Base and the five Safes that hold the supply.',
+    shapes, [
+        sec('top', 'hero', 'blue', 'right', 0, full=True, eyebrow='TRCR token', title='Everything about TRCR, in one place.',
+            lede=['The contract, how to buy, the airdrop and where every token sits. If someone sent you here with a question, the answer is on this page.'], chip=True,
+            ctas=[{'label': 'Buy on QuickSwap', 'href': '@buy'}, {'label': 'Airdrop', 'href': '#airdrop', 'ghost': True}]),
+        sec('contract', 'facts', 'paper', 'quiet', 1, eyebrow='Key facts', title='The token, in numbers.', wallet=True, items=[
+            {'k': 'Contract', 'contract': True},
+            {'k': 'Network', 'v': 'Base', 'note': 'Ethereum layer 2'},
+            {'k': 'Name · symbol', 'v': 'Tracer · TRCR'},
+            {'k': 'Decimals', 'v': '18'},
+            {'k': 'Total supply', 'v': '12,500,000,000', 'note': TBC},
+            {'k': 'Minting', 'v': 'None after genesis', 'note': 'The whole supply was minted once. There is no mint function.'},
+            {'k': 'Burning', 'v': 'Supply only goes down', 'note': 'Holders can burn their own TRCR.'},
+            {'k': 'Voting', 'v': 'Delegate to vote', 'note': 'Votes count once delegated, even to yourself.'}]),
+        sec('buy', 'steps', 'paper', 'quiet', 1, eyebrow='How to buy', title='Buy TRCR in five steps.', items=[
+            {'title': 'Get a wallet on Base', 'body': 'Coinbase Wallet, MetaMask or Rabby all work.'},
+            {'title': 'Fund it with ETH on Base', 'body': 'Buy on an exchange that withdraws to Base, or bridge from Ethereum.'},
+            {'title': 'Open QuickSwap', 'body': 'Use the link on this page, so you land on the official pair.'},
+            {'title': 'Check the contract', 'body': 'Paste the address from this page. Ignore look-alike tokens.'},
+            {'title': 'Swap and add TRCR', 'body': 'Confirm the swap, then add TRCR to your wallet with the button above.'}],
+            ctas=[{'label': 'Buy on QuickSwap', 'href': '@buy'}, {'label': 'New to Base? Start here', 'href': 'base', 'ghost': True}]),
+        sec('airdrop', 'prose', 'blue', 'right', 2, full=True, eyebrow='Airdrop', title='The TRCR airdrop on Base.', body=[
+            'Everything about the drop is published here first.',
+            {'list': ['Who is eligible: ' + TBC, 'Snapshot: ' + TBC, 'How tokens arrive: ' + TBC, 'When: ' + TBC]},
+            '**We will never DM you first, ask for your seed phrase or send you to another site to claim.** The only official contract is the one on this page.']),
+        sec('distribution', 'safes', 'paper', 'right', 3, full=True, eyebrow='Distribution', title='Five Safes hold the supply.', lede=['Every TRCR outside circulation sits in a multisig Safe on Base, open for anyone to check.'], items=[
+            {'name': 'Tracer Foundation', 'purpose': 'Long-term stewardship of the project.'},
+            {'name': 'Team & advisors', 'purpose': 'The people building Tracer.'},
+            {'name': 'Ecosystem', 'purpose': 'Grants, partners and growth.'},
+            {'name': 'Treasury', 'purpose': 'Run by the DAO.'},
+            {'name': 'Early backers', 'purpose': 'Those who supported Tracer early.'}]),
+        sec('faq', 'faq', 'paper', 'quiet', 4, eyebrow='Token FAQ', title='Token questions.', groups=['Token', 'Airdrop'], askTracy=True),
+    ], tags=tags_ring(0) + tags_ring(3))
+
+# ---------------------------------------------------------------- governance
+shapes = ['loop', 'wave', 'loop', 'wave']
+pages['governance'], xpages['governance'] = page(
+    'Governance: how the Tracer DAO works · Tracer', 'TRCR holders govern the Carrot protocol through an on-chain Governor and Timelock. What the DAO decides and how to take part.',
+    shapes, [
+        sec('top', 'hero', 'blue', 'right', 0, full=True, eyebrow='Governance', title='Tracer is run by its holders.',
+            lede=['TRCR holders steer the Carrot protocol through an on-chain Governor and Timelock. No admin keys, no back door: if it changes, it was voted.'],
+            ctas=[{'label': 'How to take part', 'href': '#how'}, {'label': 'Get TRCR', 'href': 'token', 'ghost': True}]),
+        sec('decides', 'steps', 'paper', 'quiet', 1, eyebrow='What the DAO decides', title='The rules of the market are a vote.', items=[
+            {'title': 'Endorsers', 'body': 'Who may license carbon removal projects and endorse their credits, and who loses that right.'},
+            {'title': 'Payment tokens', 'body': 'Which stablecoins the marketplace and campaigns accept.'},
+            {'title': 'The marketplace', 'body': 'Listing currency, and closing or reopening project shops.'},
+            {'title': 'Safety switches', 'body': 'Pausing specific functions if something goes wrong.'},
+            {'title': 'Upgrades', 'body': 'Every contract upgrade passes through a vote and the Timelock.'},
+            {'title': 'Seed transfers', 'body': 'Whether pre-funding entitlements may change hands.'}]),
+        sec('how', 'steps', 'blue', 'right', 2, full=True, eyebrow='How to take part', title='Four steps from holder to voter.', items=[
+            {'title': 'Hold TRCR', 'body': 'On Base, in your own wallet.'},
+            {'title': 'Delegate', 'body': 'A one-time transaction. Delegate to yourself to vote yourself.'},
+            {'title': 'Vote or propose', 'body': 'Vote on live proposals; above the threshold, make your own.'},
+            {'title': 'The Timelock executes', 'body': 'Passed proposals queue, wait out the delay, then run.'}]),
+        sec('params', 'params', 'paper', 'quiet', 3, eyebrow='Parameters', title='The numbers behind a vote.', rows=[
+            ['Voting token', 'TRCR (ERC20Votes, snapshot at proposal)'], ['Proposal threshold', TBC], ['Quorum', TBC], ['Voting delay', TBC],
+            ['Voting period', TBC], ['Timelock delay', TBC], ['Where to vote', TBC]],
+            note='Values are set for Base when the protocol launches on mainnet.'),
+        sec('faq', 'faq', 'paper', 'quiet', 3, eyebrow='Governance FAQ', title='Governance questions.', groups=['Governance'], askTracy=True),
+    ], tags=tags_loop(0) + tags_loop(2))
+
+# ---------------------------------------------------------------- base
+shapes = [{'kind': 'blocks', 'n': 5}, 'wave', {'kind': 'blocks', 'n': 5}, 'wave']
+pages['base'], xpages['base'] = page(
+    'How to Base: wallet to TRCR in six steps · Tracer', 'New to Base? Set up a wallet, add the network, fund it with ETH and get TRCR on QuickSwap, step by step.',
+    shapes, [
+        sec('top', 'hero', 'blue', 'right', 0, full=True, eyebrow='How to Base', title='New to Base? Start here.',
+            lede=['Base is an Ethereum layer 2 incubated by Coinbase: Ethereum\'s security, transactions for cents. This guide takes you from no wallet to holding TRCR.'],
+            ctas=[{'label': 'Start the guide', 'href': '#steps'}, {'label': 'base.org', 'href': '@base', 'ghost': True}]),
+        sec('why', 'facts', 'paper', 'quiet', 1, eyebrow='Why Base', title='Why Tracer chose Base.', items=[
+            {'k': 'Security', 'v': 'Settles to Ethereum', 'note': 'A layer 2 that posts its transactions to Ethereum.'},
+            {'k': 'Cost', 'v': 'Cents per transaction', 'note': 'Fees are paid in ETH on Base.'},
+            {'k': 'Wallets', 'v': 'Any EVM wallet', 'note': 'Coinbase Wallet, MetaMask, Rabby and more.'},
+            {'k': 'Reach', 'v': 'Easy on-ramps', 'note': 'Many exchanges withdraw straight to Base.'}]),
+        sec('steps', 'steps', 'paper', 'quiet', 1, eyebrow='The guide', title='Six steps to TRCR.', items=[
+            {'title': 'Install a wallet', 'body': 'Coinbase Wallet, MetaMask or Rabby. Write your recovery phrase on paper and keep it offline.'},
+            {'title': 'Add the Base network', 'body': 'Most wallets list Base already. If not, add it from base.org or chainlist.org.'},
+            {'title': 'Get ETH on Base', 'body': 'Buy ETH on an exchange and withdraw it on the Base network, or bridge it from Ethereum.'},
+            {'title': 'Open QuickSwap', 'body': 'Use the official link from our token page.'},
+            {'title': 'Swap ETH for TRCR', 'body': 'Paste the contract address from our token page, check it, then swap.'},
+            {'title': 'Add TRCR to your wallet', 'body': 'Use the button on the token page, or import the contract address.'}],
+            ctas=[{'label': 'Go to the token page', 'href': 'token#contract'}]),
+        sec('safety', 'prose', 'blue', 'right', 2, full=True, eyebrow='Stay safe', title='Four rules that save wallets.', body=[
+            {'list': ['Never share your recovery phrase. Nobody legitimate will ask for it.', 'Only use the contract address on our token page.', 'The team never DMs first. Treat every DM as a scam.', 'Check every transaction before you sign it.']}]),
+        sec('faq', 'faq', 'paper', 'quiet', 3, eyebrow='Base FAQ', title='Base questions.', groups=['Base'], askTracy=True),
+    ], tags=[{'id': 'chain', 'k': 0, 'label': 'Base · Ethereum L2'}, {'id': 'chain', 'k': 2, 'label': 'Your wallet, on Base'}])
+
+# ---------------------------------------------------------------- ecosystem
+shapes = ['hub', 'wave', 'route', 'hub', 'wave']
+pages['ecosystem'], xpages['ecosystem'] = page(
+    'Ecosystem: the Carrot protocol and where to go next · Tracer', 'How the Carrot protocol turns verified carbon removal into an on-chain asset, and where to find the marketplace, the Carbon Impact Scan, the academy and the news.',
+    shapes, [
+        sec('top', 'hero', 'blue', 'right', 0, full=True, eyebrow='Ecosystem', title='One protocol. Real carbon. Many ways in.',
+            lede=['Tracer governs the Carrot protocol. The carbon side of the project, from news to the marketplace, lives on Carbon Pioneers.'],
+            ctas=[{'label': 'Where to go', 'href': '#gateways'}, {'label': 'How it works', 'href': '#how', 'ghost': True}]),
+        sec('why', 'prose', 'paper', 'quiet', 1, eyebrow='The RWA idea', title='Why carbon removal belongs on-chain.', body=[
+            'Carbon credits have a trust problem: the same tonne can be counted twice, and retirements are hard to check.',
+            'On the Carrot protocol each credit is endorsed once, issued as CRRT down to the gram and retired in public. **Anyone can follow a tonne from the project that removed it to the Rabbit that retired it.**']),
+        sec('how', 'steps', 'paper', 'right', 2, full=True, eyebrow='How it works', title='Five parts, one market.', items=[
+            {'title': 'Endorsers', 'body': 'Admitted by the DAO. They license projects and endorse each credit once.'},
+            {'title': 'CRRT', 'body': 'The carbon asset. One slice is one gram; a million slices is a tonne.'},
+            {'title': 'Seed campaigns', 'body': 'Back a project before delivery and receive its CRRT as it is issued.'},
+            {'title': 'Marketplace', 'body': 'Fixed-price listings, paid in one transaction, with no protocol fees.'},
+            {'title': 'Rabbits', 'body': 'Retirement containers. CRRT sent in is retired for good.'}]),
+        sec('gateways', 'cards', 'paper', 'right', 3, full=True, eyebrow='Where to go', title='Pick your way in.', items=[
+            {'title': 'Marketplace', 'body': 'Buy CRRT from endorsed removal projects.', 'status': 'Coming soon', 'href': '@carbonPioneers'},
+            {'title': 'Carbon Impact Scan', 'body': 'A guided scan of your footprint, then the credits to match.', 'status': 'Coming soon', 'href': '@carbonPioneers'},
+            {'title': 'Academy', 'body': 'Courses and certification for carbon buyers.', 'status': 'Later', 'href': '@carbonPioneers'},
+            {'title': 'News', 'body': 'Carbon removal news and market insight.', 'status': 'Live', 'href': '@carbonPioneers'}],
+            note='Protocol stats (tonnes issued and retired, active projects) go live here after mainnet.'),
+        sec('faq', 'faq', 'paper', 'quiet', 4, eyebrow='Ecosystem FAQ', title='Ecosystem questions.', groups=['Ecosystem'], askTracy=True),
+    ], tags=tags_hub(0) + tags_route(2) + tags_hub(3))
+
+# ---------------------------------------------------------------- roadmap
+shapes = [{'kind': 'timeline', 'ids': TL_IDS, 'done': 2, 'vertical': True}, 'wave']
+pages['roadmap'], xpages['roadmap'] = page(
+    'Roadmap · Tracer', 'Where Tracer is: the protocol is built and tested; next come the TRCR airdrop, the QuickSwap launch and mainnet on Base.',
+    shapes, [
+        sec('top', 'hero', 'blue', 'right', 0, full=True, eyebrow='Roadmap', title='Where Tracer is heading.', lede=['The solid line is done. The faint line is next. Dates are added as they are fixed.']),
+        sec('plan', 'timeline', 'paper', 'quiet', 1, eyebrow='Milestones', title='The plan, in order.', items=[
+            {'when': '2026', 'state': 'done', 'title': 'Carrot protocol built and tested', 'body': 'Contracts, governance and the indexer, tested on testnet.'},
+            {'when': 'Nov 2026', 'state': 'now', 'title': 'The new Tracer site', 'body': 'One place for the token, governance and the ecosystem.'},
+            {'when': 'TBC', 'state': 'next', 'title': 'TRCR airdrop on Base', 'body': 'Distribution from the five Safes.'},
+            {'when': 'TBC', 'state': 'next', 'title': 'TRCR on QuickSwap', 'body': 'Open trading on Base.'},
+            {'when': 'TBC', 'state': 'next', 'title': 'Carrot protocol on mainnet', 'body': 'Governance, issuance and retirement live on Base.'},
+            {'when': 'TBC', 'state': 'next', 'title': 'Marketplace on Carbon Pioneers', 'body': 'Buy CRRT from endorsed projects.'},
+            {'when': 'TBC', 'state': 'later', 'title': 'Carbon Impact Scan', 'body': 'A guided scan from footprint to removal.'},
+            {'when': 'TBC', 'state': 'later', 'title': 'Academy', 'body': 'Courses and certification for carbon buyers.'}]),
+    ], tags=tags_timeline(0))
+
+# ---------------------------------------------------------------- about
+shapes = ['mark', 'wave']
+pages['about'], xpages['about'] = page(
+    'About Tracer', 'Why Tracer exists and the team building it.',
+    shapes, [
+        sec('top', 'hero', 'blue', 'right', 0, full=True, eyebrow='About', title='Built to make carbon removal traceable.',
+            lede=['Climate action needs carbon removal people can trust. Tracer puts every tonne on a public line, from the project that removed it to the moment it is retired.']),
+        sec('mission', 'prose', 'paper', 'quiet', 1, eyebrow='Mission', title='Why we are building Tracer.', body=[
+            'Carbon removal will only scale if buyers can check what they pay for. Tracer makes the market\'s rules public and puts them in the hands of its holders.',
+            {'h': 'What we believe'},
+            {'list': ['One credit, counted once.', 'Retirements anyone can verify.', 'Rules set by those who hold the token, not by a back office.']}]),
+        sec('team', 'team', 'paper', 'quiet', 1, eyebrow='Team', title='The people behind Tracer.', items=[
+            {'name': 'Profile coming soon', 'role': 'Founder'}, {'name': 'Profile coming soon', 'role': 'Protocol engineering'},
+            {'name': 'Profile coming soon', 'role': 'Carbon markets'}, {'name': 'Profile coming soon', 'role': 'Community'}],
+            note='Team profiles are being added.', ctas=[{'label': 'Contact the team', 'href': 'contact', 'ghost': True}]),
+    ])
+
+# ---------------------------------------------------------------- faq
+shapes = ['mark', 'wave']
+pages['faq'], xpages['faq'] = page(
+    'FAQ · Tracer', 'Answers about TRCR, the airdrop, governance, Base and the Carrot ecosystem.',
+    shapes, [
+        sec('top', 'hero', 'blue', 'right', 0, full=True, eyebrow='FAQ', title='Questions, answered.', lede=['Search below, or ask Tracy in the corner.']),
+        sec('all', 'faq', 'paper', 'quiet', 1, title='', search=True, grouped=True, askTracy=True),
+    ])
+
+# ---------------------------------------------------------------- contact
+shapes = ['mark', 'wave']
+pages['contact'], xpages['contact'] = page(
+    'Contact · Tracer', 'Get in touch with the Tracer team.',
+    shapes, [
+        sec('top', 'hero', 'blue', 'right', 0, full=True, eyebrow='Contact', title='Talk to the team.', lede=['Partnerships, press, projects that want to join the protocol, or anything else.']),
+        sec('form', 'contact', 'paper', 'quiet', 1, title='Send us a message.', topics=['General', 'Partnership', 'Press', 'Carbon project', 'Token'],
+            channels=[{'k': 'Email', 'v': 'To be confirmed', 'href': '#'}, {'k': 'Community', 'v': 'Links to follow', 'href': '#'}, {'k': 'Questions about TRCR', 'v': 'Read the FAQ', 'href': 'faq'}]),
+    ])
+
+# ---------------------------------------------------------------- legal
+LEGAL_SHAPES = ['mark', 'wave']
+pages['impressum'], xpages['impressum'] = page('Impressum · Tracer', 'Legal notice.', LEGAL_SHAPES, [
+    sec('top', 'hero', 'blue', 'right', 0, full=True, eyebrow='Legal', title='Impressum.'),
+    sec('text', 'prose', 'paper', 'quiet', 1, title='', body=[
+        {'h': 'Provider'}, 'Company name: ' + TBC, 'Address: ' + TBC, 'Represented by: ' + TBC,
+        {'h': 'Contact'}, 'Email: ' + TBC, {'h': 'Register'}, 'Register court and number: ' + TBC, 'VAT ID: ' + TBC]),
+])
+pages['privacy'], xpages['privacy'] = page('Privacy · Tracer', 'How this site handles your data.', LEGAL_SHAPES, [
+    sec('top', 'hero', 'blue', 'right', 0, full=True, eyebrow='Legal', title='Privacy.'),
+    sec('text', 'prose', 'paper', 'quiet', 1, title='', body=[
+        'Draft, to be reviewed before launch. ' + TBC,
+        {'h': 'What this site collects'},
+        {'list': ['No tracking cookies and no analytics.', 'The contact form sends what you type to the team, only when you submit it.',
+                  'Tracy, the guide in the corner, answers from this site\'s FAQ inside your browser.',
+                  'Wallet actions (adding TRCR) happen in your own wallet; this site never sees your keys.']},
+        {'h': 'Who is responsible'}, 'See the [Impressum](impressum.html).', {'h': 'Your rights'}, 'You can ask what we hold about you, and ask us to delete it, by contacting us.']),
+])
+pages['disclaimer'], xpages['disclaimer'] = page('Risk disclaimer · Tracer', 'Important information about TRCR and crypto assets.', LEGAL_SHAPES, [
+    sec('top', 'hero', 'blue', 'right', 0, full=True, eyebrow='Legal', title='Risk disclaimer.'),
+    sec('text', 'prose', 'paper', 'quiet', 1, title='', body=[
+        'Draft, to be reviewed before launch. ' + TBC,
+        'Nothing on this site is financial, investment, legal or tax advice. TRCR is a governance token: it gives a vote in the Tracer DAO. It is not a share in a company and comes with no promise of profit.',
+        {'h': 'Know the risks'},
+        {'list': ['Crypto assets are volatile. You can lose everything you put in.', 'Smart contracts can contain bugs, even when tested and reviewed.',
+                  'Scammers copy tokens and sites. Only use the contract address on our token page.', 'Rules for crypto assets differ by country. Check what applies to you.']}]),
+])
+
+# ---------------------------------------------------------------- shared content
+faq = [
+    ('Token', 'What is TRCR?', ['TRCR is Tracer\'s governance token on Base. Holders use it to propose and vote on how the Carrot protocol runs.'], ['token', 'trcr']),
+    ('Token', 'What is the official contract address?', ['It is published on the [token page](token.html#contract) at launch, and nowhere else. Always check it before you buy.'], ['contract', 'address', 'ca']),
+    ('Token', 'Where can I buy TRCR?', ['On QuickSwap, on Base. Use the link on our [token page](token.html#buy) so you land on the official pair.'], ['buy', 'quickswap', 'swap', 'purchase']),
+    ('Token', 'What is the total supply?', ['12,500,000,000 TRCR {tbc}, all minted once at genesis. There is no mint function, so supply can never go up; burns can only bring it down.'], ['supply', 'tokenomics', 'mint', 'burn']),
+    ('Token', 'Where are the tokens held?', ['In five Safes: Tracer Foundation, Team & advisors, Ecosystem, Treasury and Early backers. Their addresses are published on the token page.'], ['safe', 'safes', 'distribution', 'allocation', 'wallets']),
+    ('Token', 'Is TRCR an investment?', ['TRCR gives you a vote in the Tracer DAO. It is not a share in a company and promises no return. Crypto assets are volatile; read the [risk disclaimer](disclaimer.html).'], ['invest', 'price', 'profit']),
+    ('Airdrop', 'Who gets the airdrop?', ['Eligibility will be published on the [token page](token.html#airdrop) before the drop {tbc}.'], ['airdrop', 'eligible', 'eligibility']),
+    ('Airdrop', 'Do I need to claim the airdrop?', ['How tokens arrive will be published on the token page {tbc}. We will never ask for your recovery phrase or send you to another site to claim.'], ['claim', 'airdrop']),
+    ('Airdrop', 'Someone sent me a DM about the airdrop. Is it real?', ['No. The team never sends the first message. Only trust the links on this site.'], ['dm', 'scam', 'message']),
+    ('Governance', 'How do I vote?', ['Hold TRCR and delegate your votes, to yourself or someone you trust. Votes only count after delegating. Then vote on live proposals.'], ['vote', 'voting', 'dao']),
+    ('Governance', 'Why do I have to delegate to myself?', ['TRCR counts voting power at the moment a proposal is made, and only for delegated tokens. Delegating to yourself is a one-time transaction.'], ['delegate', 'delegation']),
+    ('Governance', 'What can the DAO decide?', ['Which Endorsers may license carbon projects, which stablecoins are accepted, how the marketplace runs, pauses and contract upgrades.'], ['dao', 'decide', 'proposal', 'governance']),
+    ('Base', 'What is Base?', ['An Ethereum layer 2 incubated by Coinbase. It settles to Ethereum and keeps fees to cents.'], ['base', 'layer', 'l2', 'network']),
+    ('Base', 'Which wallet should I use?', ['Any EVM wallet that supports Base, such as Coinbase Wallet, MetaMask or Rabby. See [How to Base](base.html).'], ['wallet', 'metamask', 'coinbase']),
+    ('Base', 'What does a transaction cost?', ['Usually a few cents, paid in ETH on Base.'], ['fee', 'fees', 'gas', 'cost']),
+    ('Ecosystem', 'What is CRRT?', ['The Carrot protocol\'s carbon asset. One slice is one gram of endorsed carbon removal; a million slices is a tonne.'], ['crrt', 'credit', 'carbon']),
+    ('Ecosystem', 'What is a Rabbit?', ['A retirement container. CRRT sent into a Rabbit is retired permanently, with its beneficiary and purpose on record. It can never be taken back out.'], ['rabbit', 'retire', 'retirement', 'offset']),
+    ('Ecosystem', 'Where can I buy carbon credits?', ['On the Carbon Pioneers marketplace, coming soon. The Carbon Impact Scan will guide you from your footprint to the right credits.'], ['marketplace', 'buy', 'credits', 'scan']),
+]
+
+content = {
+    'links': LINKS,
+    'token': {'symbol': 'TRCR', 'name': 'Tracer', 'network': 'Base', 'address': '', 'decimals': 18, 'addressPending': 'Contract published at launch'},
+    'nav': [{'label': 'Token', 'href': 'token'}, {'label': 'Governance', 'href': 'governance'}, {'label': 'Ecosystem', 'href': 'ecosystem'},
+            {'label': 'How to Base', 'href': 'base'}, {'label': 'Roadmap', 'href': 'roadmap'}, {'label': 'About', 'href': 'about'}],
+    'footer': {
+        'tagline': 'Carbon removal, traced on-chain. A real-world asset project on Base, governed by TRCR holders.',
+        'columns': [
+            {'title': 'Tracer', 'links': [{'label': 'Token', 'href': 'token'}, {'label': 'Governance', 'href': 'governance'}, {'label': 'Roadmap', 'href': 'roadmap'}, {'label': 'About', 'href': 'about'}]},
+            {'title': 'Learn', 'links': [{'label': 'How to Base', 'href': 'base'}, {'label': 'Ecosystem', 'href': 'ecosystem'}, {'label': 'FAQ', 'href': 'faq'}, {'label': 'Docs', 'href': '@docs'}]},
+            {'title': 'Elsewhere', 'links': [{'label': 'Carbon Pioneers', 'href': '@carbonPioneers'}, {'label': 'Buy on QuickSwap', 'href': '@buy'}, {'label': 'Base', 'href': '@base'}, {'label': 'Basescan', 'href': '@explorer'}]},
+            {'title': 'Company', 'links': [{'label': 'Contact', 'href': 'contact'}, {'label': 'Impressum', 'href': 'impressum'}, {'label': 'Privacy', 'href': 'privacy'}, {'label': 'Risk disclaimer', 'href': 'disclaimer'}]}],
+        'small': '© 2026 Tracer',
+        'risk': 'Crypto assets are volatile and you can lose what you put in. Nothing here is financial advice. [Read the risk disclaimer](disclaimer.html).'},
+    'announce': {'label': 'TRCR airdrop on Base', 'text': 'Details coming soon', 'href': 'token#airdrop'},
+    'tracy': {'name': 'Tracy', 'role': 'Tracer guide', 'avatar': 'tracy-face.png', 'hello': 'Hi! Ask me about TRCR',
+              'greeting': 'Hi, I\'m Tracy. Ask me about TRCR, the airdrop, governance or Base.',
+              'suggestions': ['What is TRCR?', 'How do I buy TRCR?', 'How do I vote?', 'What is a Rabbit?'],
+              'placeholder': 'Ask about TRCR, Base, voting…',
+              'note': 'Preview: Tracy answers from this site\'s FAQ, in your browser. The full assistant is coming soon.',
+              'fallback': 'I don\'t have an answer for that yet. Try the FAQ, or contact the team.'},
+    'forms': {'sent': 'Thanks. This preview isn\'t connected to a mailbox yet, so nothing was sent.'},
+    'faq': [{'group': g, 'q': q, 'a': a, 'tags': t} for g, q, a, t in faq],
+    'pages': pages,
+}
+
+site = {
+    'template': 'trace', 'slug': 'tracer', 'lang': 'en',
+    'meta': {'title': 'Tracer: carbon removal, traced on-chain', 'description': 'Tracer is a real-world asset project on Base. TRCR holders govern the Carrot protocol.', 'noindex': True},
+    'brand': {'name': 'Tracer', 'wordmark': marks['word'], 'mark': marks['mark'], 'favicon': 'assets/mark-blue.svg'},
+    'theme': {'mode': 'light',
+              'colors': {'bg': '#0657ff', 'fg': '#ffffff', 'muted': '#4a5675', 'line': 'rgba(11,21,51,.12)', 'accent': '#0657ff', 'accent2': '#d9f1ff', 'surface': '#ffffff',
+                         'blue': '#0657ff', 'paper': '#f4f6fb', 'ink': '#0b1533', 'inkmuted': '#4a5675', 'hotOnBlue': '#bfe3ff', 'hotOnPaper': '#002fa8'},
+              'fonts': {'sans': {'family': 'Space Grotesk', 'package': 'space-grotesk', 'weights': [400, 500, 600]},
+                        'mono': {'family': 'JetBrains Mono', 'package': 'jetbrains-mono', 'weights': [500]}}},
+    'content': content,
+    'experience': {'look': {'preset': 'editorial', 'tonemap': 'linear', 'vignette': 0, 'grain': 0.012, 'bloom': 0.06}, 'modules': [], 'pages': xpages},
+}
+json.dump(site, open(os.path.join(HERE, '..', 'site.json'), 'w'), indent=1, ensure_ascii=False)
+print('site.json: pages', list(pages))
