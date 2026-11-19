@@ -88,8 +88,13 @@ function builder() {
         for (let i = 0; i < s.pts.length - 1; i++) segs.push({ a: s.pts[i], b: s.pts[i + 1], vis: s.vis });
         last = s.pts[s.pts.length - 1];
       }
-      // travel is sampled sparsely (it is invisible), strokes evenly
-      const w = segs.map(g => Math.hypot(g.b[0] - g.a[0], g.b[1] - g.a[1], g.b[2] - g.a[2]) * (g.vis > 0 ? 1 : 0.08));
+      // travel is sampled sparsely (it is invisible), strokes evenly; but every jump gets room for a few samples, or the
+      // line would run straight from one stroke's end to the next stroke's start (a drawing with many strokes, like Tracy)
+      const len = segs.map(g => Math.hypot(g.b[0] - g.a[0], g.b[1] - g.a[1], g.b[2] - g.a[2]));
+      const visible = len.reduce((a, l, i) => a + (segs[i].vis > 0 ? l : 0), 0);
+      const minJump = 4 * visible / N;
+      const w = len.map((l, i) => segs[i].vis > 0 ? l : l * 0.08);
+      segs.forEach((g, i) => { if (g.vis === 0) w[i] = Math.max(w[i], minJump); });   // a jump is one segment: end -> next start
       const total = w.reduce((a, b) => a + b, 0) || 1;
       const out = new Float32Array(N * 4);
       let si = 0, acc = 0;

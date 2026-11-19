@@ -1,8 +1,8 @@
 """Tracy as the line itself: the line-art mascot vectorised into strokes the trace can draw, plus the filled art that
-fills in once the drawing is done.
+fills in once the drawing is done (the fill itself: tracy-fill.py).
 
   python3 tracy-line.py   (needs numpy, scipy, scikit-image)
-    -> 'tracyArt' in ../../assets/marks.json, ../../assets/tracy-fill.png, tracy-line-preview.png
+    -> 'tracyArt' in ../../assets/marks.json, tracy-line-preview.png
 
 Thin strokes become their centrelines: the skeleton is pruned of short spurs, walked into polylines, joined straight
 through junctions, and ends that stop just short of another stroke are carried on to meet it (no gaps). Filled parts
@@ -21,7 +21,7 @@ HERE = os.path.dirname(os.path.abspath(__file__)); A = os.path.join(HERE, '..', 
 H_PX = 1400                    # working height: strokes are ~9-12 px wide here
 THICK = 9                      # parts wider than ~2x this are "filled" and get an outline
 SPUR = 16                      # skeleton branches shorter than this (px) that end in nothing are noise
-GAP = 16                       # a stroke end this close to another stroke is carried on to meet it
+GAP = 22                       # a stroke end this close to another stroke is carried on to meet it
 
 src = Image.open(os.path.join(HERE, '6.webp')).convert('RGBA')
 r, g, b, a = [np.asarray(c, dtype=np.float32) for c in src.split()]
@@ -35,8 +35,8 @@ ink = remove_small_objects(inkf > 0.5, max_size=30)
 Hh, Ww = ink.shape
 
 filled = opening(ink, disk(THICK))
-filled = remove_small_objects(filled, max_size=120)
-thin = ink & ~dilation(filled, disk(2))
+filled = remove_small_objects(filled, max_size=500)   # fur tips and specks are not shapes; a circle drawn round them looks like a fault
+thin = ink & ~dilation(filled, disk(1))
 thin = remove_small_objects(thin, max_size=20)
 
 # ---------- skeleton graph ----------
@@ -169,6 +169,10 @@ for st in strokes:
         pts = dp(pts[:far + 1], 0.25)[:-1] + dp(pts[far:], 0.25)
     else:
         pts = dp(pts, 0.25)
+    if not st['closed'] and len(pts) > 2:   # reach a little past each end, so strokes close their joins (overlaps never show)
+        def ext(a, b, d=5.0):
+            v = np.subtract(a, b); n_ = np.linalg.norm(v); return tuple(np.add(a, v / n_ * d)) if n_ > 1e-6 else a
+        pts = [ext(pts[0], pts[1])] + list(pts) + [ext(pts[-1], pts[-2])]
     out.append({'pts': pts, 'closed': st['closed']})
 
 # drawing order: the big outline first, then nearest-next, so the trace builds her like a drawing
@@ -188,13 +192,8 @@ marks_p = os.path.join(A, 'marks.json'); marks = json.load(open(marks_p))
 marks['tracyArt'] = {'aspect': round(Ww / Hh, 4), 'strokes': [[[round((x - cx) / Hh, 5), round(-(y - cy) / Hh, 5)] for x, y in st['pts']] for st in order]}
 json.dump(marks, open(marks_p, 'w'))
 
-# the filled art, cut to the same box, for the fill once the drawing is done
-fill = Image.open(os.path.join(HERE, '5.webp')).convert('RGBA').crop(box)
-fill = fill.resize((round(fill.width * 900 / fill.height), 900), Image.LANCZOS)
-fill.save(os.path.join(A, 'tracy-fill.png'), optimize=True)
-
 total = sum(length(st['pts']) for st in order)
-print(f"strokes {len(order)}  points {sum(len(s['pts']) for s in order)}  length {total:.0f}px of {Hh}px  filled parts {n}  fill {fill.size}")
+print(f"strokes {len(order)}  points {sum(len(s['pts']) for s in order)}  length {total:.0f}px of {Hh}px  filled parts {n}")
 
 from PIL import ImageDraw
 im = Image.new('RGB', (Ww, Hh), (244, 246, 251)); d = ImageDraw.Draw(im)

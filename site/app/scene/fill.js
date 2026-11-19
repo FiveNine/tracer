@@ -7,12 +7,21 @@
  *   k: the shape index it belongs to · h: the same height the shape was built with
  */
 import * as THREE from 'three';
+import { DEFORM } from './line.js';
 
+// the fill moves exactly as the line does: the same idle wander and the same pointer nudge, vertex by vertex
 const VERT = /* glsl */`
+  ${DEFORM}
   varying float vY;
-  void main() { vY = position.y; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }`;
+  void main() {
+    vY = position.y;
+    vec4 c = clip(wander(position));
+    vec2 q = push(px(c));
+    c.xy = (q / uRes * 2. - 1.) * c.w;
+    gl_Position = c;
+  }`;
 const FRAG = /* glsl */`
-  uniform vec3 uColor; uniform float uLevel, uY0, uY1, uAlpha, uTime;
+  uniform vec3 uColor; uniform float uLevel, uY0, uY1, uAlpha, uTime;   // uTime is the line's
   varying float vY;
   void main() {
     // the level rises from the bottom of the shape to its top, with a gently moving, softened front
@@ -30,9 +39,10 @@ export function createFill(app, line, o) {
     s.holes = (r.holes || []).map(hl => new THREE.Path(hl.map(p => new THREE.Vector2(p[0] * h, p[1] * h))));
     return s;
   });
-  const g = new THREE.ShapeGeometry(shapes, 1);
+  const g = new THREE.ShapeGeometry(shapes, 1);   // polygon points are dense along every edge (the edges are what move)
   g.computeBoundingBox();
-  const u = { uColor: { value: new THREE.Color() }, uLevel: { value: 0 }, uY0: { value: g.boundingBox.min.y }, uY1: { value: g.boundingBox.max.y }, uAlpha: { value: 1 }, uTime: { value: 0 } };
+  // the line's own uniforms (time, wander, pointer, resolution) are shared, not copied
+  const u = { uTime: line.uniforms.uTime, uNoise: line.uniforms.uNoise, uDpr: line.uniforms.uDpr, uPush: line.uniforms.uPush, uRes: line.uniforms.uRes, uPointer: line.uniforms.uPointer, uColor: { value: new THREE.Color() }, uLevel: { value: 0 }, uY0: { value: g.boundingBox.min.y }, uY1: { value: g.boundingBox.max.y }, uAlpha: { value: 1 } };
   const mesh = new THREE.Mesh(g, new THREE.ShaderMaterial({ vertexShader: VERT, fragmentShader: FRAG, uniforms: u, transparent: true, depthWrite: false, depthTest: false, side: THREE.DoubleSide }));
   mesh.renderOrder = 0.5;                       // over the field, under the line's glow and core
   mesh.frustumCulled = false; mesh.visible = false;
@@ -51,7 +61,6 @@ export function createFill(app, line, o) {
     const eased = level * level * (3 - 2 * level);
     mesh.visible = eased > 0.001;
     u.uLevel.value = eased;
-    u.uTime.value = app.reduced ? 0 : t;
     const tv = P.get('tone.view'), tone = tv * tv * tv * (tv * (tv * 6 - 15) + 10);
     u.uColor.value.copy(white).lerp(blue, tone);      // the line's own colour: white on blue, blue on paper
     u.uAlpha.value = P.get('line.alpha') * line.fade;

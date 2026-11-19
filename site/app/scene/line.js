@@ -13,15 +13,28 @@
  */
 import * as THREE from 'three';
 
+/** How the line moves, as one GLSL chunk: anything drawn as part of the line (Tracy's fill) includes it and is given the
+ *  line's uniforms, so it wanders with the line and gives way to the pointer exactly as the line does.
+ *  wander(p): the idle drift, a function of position in the shape's own space · push(q): the pointer's nudge, in pixels */
+export const DEFORM = /* glsl */`
+  uniform float uTime, uNoise, uDpr, uPush;
+  uniform vec2 uRes, uPointer;
+  vec3 wander(vec3 p) { return p + uNoise * .04 * vec3(sin(p.y * 2.3 + uTime * .5), cos(p.x * 2.1 + uTime * .43), 0.); }
+  vec4 clip(vec3 p) { return projectionMatrix * modelViewMatrix * vec4(p, 1.); }
+  vec2 px(vec4 c) { return (c.xy / c.w * .5 + .5) * uRes; }
+  vec2 push(vec2 q) {
+    vec2 d = q - uPointer; float l = length(d), R = 70. * uDpr;
+    return q + (l > .001 ? d / l : vec2(0.)) * uPush * R * .12 * exp(-(l * l) / (R * R));   // a nudge, never a bend
+  }`;
+
 const VERT = /* glsl */`
   precision highp sampler2D;   // vertex samplers default to lowp: positions would be quantised to garbage
   attribute float aI;
   attribute float aSide;
   uniform sampler2D uShapes;
-  uniform float uN, uK, uShape, uStagger, uTime, uNoise, uWidth, uDpr;
-  uniform vec2 uRes, uPointer;
-  uniform float uPush;
+  uniform float uN, uK, uShape, uStagger, uWidth;
   varying float vSide, vU, vVis, vW;
+  ${DEFORM}
 
   vec4 sh(float i, float k) { return texture2D(uShapes, vec2((i + .5) / uN, (k + .5) / uK)); }
   vec4 at(float i) {
@@ -38,15 +51,8 @@ const VERT = /* glsl */`
     p.w = both + (A.w - both) * (1. - smoothstep(0., .3, g)) + (B.w - both) * smoothstep(.7, 1., g);
     float tr = g * (1. - g) * 4.;
     p.xyz += tr * uNoise * vec3(sin(u * 23. + uTime * 1.3 + k0 * 1.7), cos(u * 17. - uTime * 1.1), sin(u * 11. + uTime) * 2.);
-    p.xyz += uNoise * .04 * vec3(sin(u * 9. + uTime * .5), cos(u * 7. + uTime * .43), 0.);   // it is never quite still
+    p.xyz = wander(p.xyz);   // it is never quite still
     return p;
-  }
-  vec4 clip(vec3 p) { return projectionMatrix * modelViewMatrix * vec4(p, 1.); }
-  vec2 px(vec4 c) { return (c.xy / c.w * .5 + .5) * uRes; }
-  // the pointer pushes the line aside (in pixels), so the hand can feel it
-  vec2 push(vec2 q) {
-    vec2 d = q - uPointer; float l = length(d), R = 70. * uDpr;
-    return q + (l > .001 ? d / l : vec2(0.)) * uPush * R * .12 * exp(-(l * l) / (R * R));   // a nudge, never a bend
   }
   void main() {
     // neighbours two samples away: one-sample jitter in a traced outline would make the tangent flicker
@@ -186,6 +192,7 @@ export function createLine(app, o) {
   const v = new THREE.Vector3();
   const api = {
     group, N, shapes: o.shapes, texture: tex,
+    uniforms: common,   // shared with anything drawn as part of the line (see DEFORM)
     /** the line's box on screen in its current shape (CSS px): for keeping it clear of the words */
     screenBox(out = {}) {
       const k = Math.max(0, Math.min(K - 1, Math.round(P.get('line.shape')))), b = bounds[k];
