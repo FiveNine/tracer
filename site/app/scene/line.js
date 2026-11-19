@@ -165,7 +165,7 @@ export function createLine(app, o) {
     if (core.material.blendEquation !== eq) { core.material.blendEquation = halo.material.blendEquation = eq; }
     const w = app.width, h = app.height, dpr = app.renderer.getPixelRatio();
     const vh = 2 * Math.tan(THREE.MathUtils.degToRad(app.camera.fov / 2)) * app.camera.position.z, vw = vh * app.camera.aspect;
-    group.position.set(P.get('line.x') * vw / 2, P.get('line.y') * vh / 2, 0);
+    group.position.set(P.get('line.x') * vw / 2, (P.get('line.y') + api.dy) * vh / 2, 0);   // dy: carried with the page (app.js carry())
     group.scale.setScalar(P.get('line.s'));
     group.rotation.set(P.get('line.rx'), P.get('line.ry'), 0);
     pulse = (pulse + dt * P.get('pulse.speed') * (app.reduced ? 0 : 1)) % 1;
@@ -212,6 +212,8 @@ export function createLine(app, o) {
     bounds: k => bounds[k],
     /** an extra multiplier on the whole line (it steps back while copy crosses it) */
     fade: 1,
+    /** an extra vertical offset in half-view units, applied straight away (no easing): moves the line with the page */
+    dy: 0,
     /** world position of a node of shape k (labels) */
     node(k, id, out = new THREE.Vector3()) {
       const s = o.shapes[k]; const p = s && s.nodes[id]; if (!p) return null;

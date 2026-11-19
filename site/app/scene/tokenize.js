@@ -1,18 +1,16 @@
 /*
- * Tokenize: a photo of a real removal project fills a pinned chapter. The line stands up across it and, as the page
- * scrolls, sweeps from right to left; everything it has passed is redrawn as a dot screen in the brand's blue on
- * paper: one dot, one gram. A lens follows the pointer over the dots and shows the real thing underneath.
+ * Tokenize: a photo of a real removal project fills a pinned chapter. A line of light of its own stands across it and,
+ * as the page scrolls, sweeps from right to left; everything it has passed is redrawn as a dot screen in the brand's
+ * blue on paper: one dot, one gram. A lens follows the pointer over the dots and shows the real thing underneath.
  *
- *   createTokenize(app, line, { k, src, el, from, to })
- *   k: the sweep's shape index · el: the pinned block ([data-tok], holding [data-tok-stage], the copy and the counter)
- *   from/to: line.x at the start and the end of the sweep (the same numbers as the scroll keys), for the counter
+ *   createTokenize(app, { src, el, from, to, nFrom, nTo })
+ *   el: the pinned block ([data-tok], holding [data-tok-stage], the copy and the counter)
+ *   from/to: where the line stands at the start and the end of the sweep, in half-view units (-1..1); nFrom/nTo on phones
  *
- * The boundary is the line itself: every frame its points are projected to the screen and binned by row, so the dots
- * begin exactly where the light is, whatever the line's tilt, scale or sway.
+ * The line is drawn by the same shader as the dots, so it begins exactly where they do and never leaves its chapter.
  */
 import * as THREE from 'three';
 
-const ROWS = 512;
 const VERT = /* glsl */`
   uniform vec4 uRect; uniform vec2 uRes;
   void main() {
@@ -20,9 +18,9 @@ const VERT = /* glsl */`
     gl_Position = vec4(p / uRes * 2. - 1., 0., 1.);
   }`;
 const FRAG = /* glsl */`
-  uniform sampler2D uImg, uBound;
+  uniform sampler2D uImg;
   uniform vec4 uRect; uniform vec2 uRes, uImgSize, uPtr;
-  uniform float uDpr, uOn, uLens, uLensOn, uCell;
+  uniform float uDpr, uLens, uLensOn, uCell, uX, uTime, uSway;
   uniform vec3 uPaper, uBlue, uHot, uInk;
   vec3 lin(vec3 c) { return mix(c / 12.92, pow((c + .055) / 1.055, vec3(2.4)), step(.04045, c)); }   // the photo's sRGB, decoded here (three r149 has no colorSpace)
   vec2 cover(vec2 l) {
@@ -33,7 +31,9 @@ const FRAG = /* glsl */`
   float luma(vec3 c) { return dot(pow(max(c, 0.), vec3(1. / 2.2)), vec3(.299, .587, .114)); }
   void main() {
     vec2 p = gl_FragCoord.xy, l = (p - uRect.xy) / uRect.zw;
-    float bx = mix(uRect.x + uRect.z + 600. * uDpr, texture2D(uBound, vec2(clamp(l.y, 0., 1.), .5)).r, uOn);
+    // the line: where it stands (uX, px), with a slow sway down its length
+    float yy = (p.y - uRect.y) / uRect.w;
+    float bx = uX + uSway * (sin(yy * 4.2 + 1.3 + uTime * .35) * .7 + sin(yy * 9.7 - uTime * .22) * .3);
 
     // the world: the photo, quieter towards the copy on the left and under the header
     vec3 photo = lin(texture2D(uImg, cover(l)).rgb);
@@ -62,25 +62,27 @@ const FRAG = /* glsl */`
       col = mix(col, seen, on * smoothstep(R + .8 * uDpr, R - .8 * uDpr, ld));
       col = mix(col, uBlue, on * smoothstep(1.6 * uDpr, .4 * uDpr, abs(ld - R)));
     }
+    // the line itself: a crisp white core in a soft glow, a signal running down it, feathered at the chapter's edges
+    float dl = abs(p.x - bx), ends = smoothstep(0., 40. * uDpr, p.y - uRect.y) * smoothstep(0., 40. * uDpr, uRect.y + uRect.w - p.y);
+    float sig = exp(-pow(fract(yy * .8 + uTime * .12) - .5, 2.) * 60.);
+    float core = smoothstep(1.7 * uDpr, .5 * uDpr, dl), glow = exp(-dl / (16. * uDpr)) * (.3 + .35 * sig);
+    col = mix(col, vec3(1.), clamp(core + glow, 0., 1.) * ends);
     gl_FragColor = vec4(col, 1.);
   }`;
 
-export async function createTokenize(app, line, o) {
+export async function createTokenize(app, o) {
   const P = app.params, el = o.el, stage = el && el.querySelector('[data-tok-stage]');
   if (!stage) return null;
   const img = await new THREE.TextureLoader().loadAsync(o.src);
   img.minFilter = THREE.LinearMipmapLinearFilter; img.anisotropy = 4;
-  const bound = new Float32Array(ROWS * 4);
-  const btex = new THREE.DataTexture(bound, ROWS, 1, THREE.RGBAFormat, THREE.FloatType);
-  btex.minFilter = btex.magFilter = THREE.NearestFilter; btex.needsUpdate = true;
   const u = {
-    uImg: { value: img }, uBound: { value: btex }, uRect: { value: new THREE.Vector4() }, uRes: { value: new THREE.Vector2(1, 1) },
+    uImg: { value: img }, uRect: { value: new THREE.Vector4() }, uRes: { value: new THREE.Vector2(1, 1) },
     uImgSize: { value: new THREE.Vector2(img.image.width, img.image.height) }, uPtr: { value: new THREE.Vector2(-1e4, -1e4) },
-    uDpr: { value: 1 }, uOn: { value: 0 }, uLens: { value: 112 }, uLensOn: { value: 0 }, uCell: { value: 9 },
+    uDpr: { value: 1 }, uX: { value: 0 }, uTime: { value: 0 }, uSway: { value: 30 }, uLens: { value: 112 }, uLensOn: { value: 0 }, uCell: { value: 9 },
     uPaper: { value: new THREE.Color(o.paper || '#f4f6fb') }, uBlue: { value: new THREE.Color(o.blue || '#0657ff') }, uHot: { value: new THREE.Color('#5d9bff') }, uInk: { value: new THREE.Color(o.ink || '#0b1533') }
   };
   const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.ShaderMaterial({ vertexShader: VERT, fragmentShader: FRAG, uniforms: u, depthWrite: false, depthTest: false }));
-  mesh.renderOrder = 0.3;      // over the dot field, under the line
+  mesh.renderOrder = 0.3;      // over the dot field
   mesh.frustumCulled = false; mesh.visible = false;
   app.scene.add(mesh);
 
@@ -88,20 +90,12 @@ export async function createTokenize(app, line, o) {
   const steps = [...el.querySelectorAll('[data-tok-step]')], num = el.querySelector('[data-tok-n]');
   const fmt = n => Math.round(n).toLocaleString('en-US');
   let shownStep = -1, shownN = -1, lensK = 0;
-  const v = new THREE.Vector3(), rows = new Float32Array(ROWS), hit = new Uint8Array(ROWS);
+  const sec = el.closest('section') || el;
+  let p = 0;
 
   app.add((t, dt) => {
     const r = stage.getBoundingClientRect(), H = app.height;
     const live = r.bottom > 0 && r.top < H && r.width > 2;
-    // the sweep belongs to this chapter: as the line becomes it, the line is held to the chapter's bounds (so it
-    // arrives as a stroke from the section's top edge to its bottom, and leaves with it when the page scrolls on)
-    { const dpr = app.renderer.getPixelRatio(), W = app.width;
-      const d = Math.abs(P.get('line.shape') - o.k), k = d >= 1 ? 0 : d <= 0.15 ? 1 : 1 - (d - 0.15) / 0.85, e = k * k * (3 - 2 * k);
-      const m = 200;   // the loose frame: a little past the screen, so nothing is cut while the line is elsewhere
-      const lerp = (a, b) => a + (b - a) * e;
-      line.uniforms.uClip.value.set(lerp(-m, r.left) * dpr, lerp(-m, H - r.bottom) * dpr, lerp(W + m, r.right) * dpr, lerp(H + m, H - r.top) * dpr);
-      if (e <= 0) line.uniforms.uClip.value.set(-1e5, -1e5, 1e5, 1e5);
-    }
     mesh.visible = live;
     if (!live) return;
     const dpr = app.renderer.getPixelRatio();
@@ -110,46 +104,24 @@ export async function createTokenize(app, line, o) {
     u.uCell.value = app.narrow ? 7 : 9;
     u.uLens.value = app.narrow ? 80 : 112;
 
-    // where the line is, row by row (only once it has become the sweep)
-    const ds = Math.abs(P.get('line.shape') - o.k), on = ds > 0.06 ? 0 : ds < 0.005 ? 1 : 1 - (ds - 0.005) / 0.055;   // only once the line has (nearly) become the sweep
-    u.uOn.value = on;
-    if (on > 0) {
-      line.group.updateMatrixWorld();
-      rows.fill(0); hit.fill(0);
-      const d = line.shapes[o.k].data, N = line.N;
-      for (let i = 0; i < N; i += 2) {
-        if (d[i * 4 + 3] <= 0) continue;
-        v.set(d[i * 4], d[i * 4 + 1], d[i * 4 + 2]).applyMatrix4(line.group.matrixWorld).project(app.camera);
-        const sx = (v.x + 1) / 2 * app.width, sy = (1 - v.y) / 2 * H;
-        const row = Math.floor((1 - (sy - r.top) / r.height) * ROWS);   // y up, like gl_FragCoord
-        if (row < 0 || row >= ROWS) continue;
-        rows[row] += sx; hit[row]++;
-      }
-      // average each row, then fill the gaps between rows and run the ends out flat
-      let last = -1;
-      for (let i = 0; i < ROWS; i++) {
-        if (!hit[i]) continue;
-        rows[i] /= hit[i];
-        if (last >= 0 && i - last > 1) for (let j = last + 1; j < i; j++) rows[j] = rows[last] + (rows[i] - rows[last]) * (j - last) / (i - last);
-        else if (last < 0) for (let j = 0; j < i; j++) rows[j] = rows[i];
-        last = i;
-      }
-      if (last < 0) rows.fill(r.right + 600);
-      else for (let j = last + 1; j < ROWS; j++) rows[j] = rows[last];
-      for (let i = 0; i < ROWS; i++) bound[i * 4] = rows[i] * dpr;
-      btex.needsUpdate = true;
-    }
+    // how far through the pinned chapter the page is: the sweep runs over its first 85%
+    const sr = sec.getBoundingClientRect(), span = Math.max(1, sr.height - H);
+    const want = Math.max(0, Math.min(1, -sr.top / span / 0.85));
+    p = app.reduced ? want : p + (want - p) * Math.min(1, dt * 6);
+    const from = app.narrow ? o.nFrom ?? o.from : o.from, to = app.narrow ? o.nTo ?? o.to : o.to;
+    const xn = from + (to - from) * p;
+    u.uX.value = (r.left + (xn + 1) / 2 * r.width) * dpr;
+    u.uSway.value = (app.narrow ? 0.03 : 0.022) * r.height * dpr;
+    u.uTime.value = app.reduced ? 0 : t;
 
     // the lens follows a fine pointer over the stage
     const I = app.input;
     const over = I.fine && I.moved && I.x > r.left && I.x < r.right && I.y > r.top && I.y < r.bottom && !(document.elementFromPoint(I.x, I.y) || document.body).closest('a,button,.tok-copy,.tok-count,header');
     lensK += ((over && !app.reduced ? 1 : 0) - lensK) * Math.min(1, dt * 8);
-    u.uLensOn.value = lensK * on;
+    u.uLensOn.value = lensK;
     u.uPtr.value.set(I.x * dpr, (H - I.y) * dpr);
 
     // progress through the sweep: which step is lit, how many grams are on-chain
-    const x = P.get('line.x'), from = app.narrow ? o.nFrom ?? o.from : o.from, to = app.narrow ? o.nTo ?? o.to : o.to;
-    const p = on > 0.99 ? Math.max(0, Math.min(1, (from - x) / (from - to))) : 0;
     const step = Math.min(steps.length - 1, Math.floor(p * steps.length * 0.999 + 0.0001));
     if (step !== shownStep) { steps.forEach((s, i) => s.classList.toggle('is-on', i === step)); el.dataset.step = step; shownStep = step; }
     const n = p > 0.995 ? 1e6 : Math.floor(p * 1e6 / 37) * 37;

@@ -65,16 +65,13 @@ def keys_of(sections, shapes, cta_tone='blue'):
         if i > 0: k.update({'shift': '-18vh', 'hold': .45})   # arrives as the section settles into view
         out.append(k)
         sh = shapes[s['_k']]
-        if s['_stage'] == 'sweep':   # the sweep: right to left while the chapter is pinned (linear, so the dots keep pace)
-            out.append({'at': '#' + s['id'], 'offset': .6, 'ease': 'linear', 'set': {'line.x': sh['to']}, 'narrow': {'line.x': sh['nTo']}})
-    last = sections[-1]
-    if all(x['_stage'] == 'hidden' for x in sections):   # a page without the line keeps it out of the footer too
-        out.append({'at': '#footer', 'shift': '-60vh', 'hold': .2, 'set': {'line.alpha': 0, 'tone': 0}})
-        return out
-    d, n = pose(last['_stage'], shapes[last['_k']], last['_k'], 'blue')
-    d = dict(d, **{'line.alpha': .18, 'pulse.amt': .3})   # the footer: the mark steps back behind the links
-    out.append({'at': '#footer', 'shift': '-60vh', 'hold': .2, 'set': d, **({'narrow': dict(n, **{'line.alpha': .08})} if n else {})})
-    return out
+        if s['_stage'] == 'sweep':
+            # the tokenize chapter draws its own line (scene/tokenize.js): the wordmark keeps its hero pose and is carried
+            # up and away with the hero (app.js carry()), fading only once it is off screen
+            prev = out[-2]
+            out[-1] = {'at': '#' + s['id'], 'ease': 'inQuart', 'asFirst': True, 'set': dict(prev['set'], **{'line.alpha': 0, 'pulse.amt': 0})}
+            if 'narrow' in prev: out[-1]['narrow'] = dict(prev['narrow'])
+    return out   # the footer has its own ground; the line is carried up with the last section (app.js carry())
 
 
 def sec(id, kind_, tone, stage, k, **kw):
@@ -149,34 +146,34 @@ pages['index'], xpages['index'] = page(
                 {'title': 'Bought on the marketplace', 'body': 'Fixed-price listings in admitted stablecoins. No protocol fees.'},
                 {'title': 'Retired in a Rabbit', 'body': 'Send CRRT into a Rabbit and it is retired for good, with its beneficiary on record.'}],
             counter='grams on-chain · 1,000,000 = one tonne'),
-        sec('projects', 'portal', 'blue', 'hidden', 1, full=True, eyebrow='Real-world assets', title='Every tonne has a place.',
+        sec('projects', 'portal', 'blue', 'hidden', 0, full=True, eyebrow='Real-world assets', title='Every tonne has a place.',
             lede=['Each CRRT comes from a real removal project you can look into: where it is, who endorsed it, how much has been issued and how much is retired.'],
             items=PLACES,
             ctas=[{'label': 'Explore the ecosystem', 'href': 'ecosystem', 'ghost': True}],
             note='The kinds of removal behind CRRT. Endorsed projects are listed on the marketplace at launch.'),
-        sec('token', 'coin', 'paper', 'hidden', 1, full=True, eyebrow='The token', title='What is TRCR?',
+        sec('token', 'coin', 'paper', 'hidden', 0, full=True, eyebrow='The token', title='What is TRCR?',
             lede=['The governance token of the Carrot protocol, on Base. Hold it, delegate it, vote with it.'],
             items=[{'title': 'Vote on the protocol', 'tag': 'Governance', 'href': 'governance'},
                    {'title': 'Delegate your votes', 'tag': 'Guide', 'href': 'governance#how'},
                    {'title': 'Get it in the airdrop', 'tag': 'Next', 'href': 'token#airdrop'},
                    {'title': 'Buy on QuickSwap', 'tag': 'At launch', 'href': '@buy'}],
             facts=[{'k': 'Network', 'v': 'Base'}, {'k': 'Supply', 'v': '12.5B'}, {'k': 'Minting', 'v': 'Never'}], chip=True),
-        sec('governance', 'timelock', 'paper', 'hidden', 1, full=True, eyebrow='Governance', title='Hold. Delegate. Vote. _Wait._ Execute.', items=[
+        sec('governance', 'timelock', 'paper', 'hidden', 0, full=True, eyebrow='Governance', title='Hold. Delegate. Vote. _Wait._ Execute.', items=[
             {'title': 'Hold TRCR', 'body': 'Your tokens are your voting weight.'},
             {'title': 'Delegate', 'body': 'To yourself or someone you trust. Votes only count once delegated.'},
             {'title': 'Vote or propose', 'body': 'On Endorsers, payment tokens, the marketplace and upgrades.'},
             {'title': 'The Timelock executes', 'body': 'A passed proposal waits in public before it runs on-chain. No back door.'}],
             dial={'label': 'Timelock · example proposal', 'caption': 'until it can run on-chain', 'secs': 101520, 'total': 172800},
             ctas=[{'label': 'How governance works', 'href': 'governance', 'ghost': True}]),
-        sec('base', 'cta', 'blue', 'hidden', 1, eyebrow='Built on Base', title='Ethereum security, at cents a move.', lede=['Base is an Ethereum layer 2 incubated by Coinbase. New to it? The guide takes you from no wallet to holding TRCR in six steps.'],
+        sec('base', 'cta', 'blue', 'hidden', 0, eyebrow='Built on Base', title='Ethereum security, at cents a move.', lede=['Base is an Ethereum layer 2 incubated by Coinbase. New to it? The guide takes you from no wallet to holding TRCR in six steps.'],
             items=[], ctas=[{'label': 'How to Base', 'href': 'base'}]),
-        sec('ecosystem', 'cards', 'paper', 'hidden', 1, eyebrow='Ecosystem', title='Where to go next.', items=[
+        sec('ecosystem', 'cards', 'paper', 'hidden', 0, eyebrow='Ecosystem', title='Where to go next.', items=[
             {'title': 'Marketplace', 'body': 'Buy CRRT from endorsed projects.', 'status': 'Coming soon', 'href': '@carbonPioneers'},
             {'title': 'Carbon Impact Scan', 'body': 'Find your footprint, then remove it.', 'status': 'Coming soon', 'href': '@carbonPioneers'},
             {'title': 'Academy', 'body': 'Courses on buying carbon removal.', 'status': 'Later', 'href': '@carbonPioneers'},
             {'title': 'News', 'body': 'Carbon removal news and market insight.', 'status': 'Live', 'href': '@carbonPioneers'}],
             note='These live on Carbon Pioneers, the carbon side of the project.'),
-        sec('roadmap', 'cta', 'paper', 'hidden', 1, eyebrow='Roadmap', title='Built, tested, and next up.', lede=['The protocol is built and tested on testnet. Next: the airdrop, the QuickSwap launch and mainnet on Base.'], items=[],
+        sec('roadmap', 'cta', 'paper', 'hidden', 0, eyebrow='Roadmap', title='Built, tested, and next up.', lede=['The protocol is built and tested on testnet. Next: the airdrop, the QuickSwap launch and mainnet on Base.'], items=[],
             ctas=[{'label': 'See the roadmap', 'href': 'roadmap', 'ghost': True}]),
         sec('faq', 'faq', 'paper', 'right', 2, full=True, eyebrow='FAQ · Ask Tracy', title='Questions? Ask Tracy.',
             lede=['Tracy is Tracer\'s guide, in the corner of every page. The questions people ask most are right here.'], limit=5, askTracy=True,

@@ -66,7 +66,7 @@ async function build() {
   const jobs = [];
   XP.shapes.forEach((sp, k) => {
     if (sp && sp.photos && shapes[k].discs) jobs.push(createDiscs(app, line, { k, discs: shapes[k].discs, photos: sp.photos.map(p => 'assets/' + p) }));
-    if (sp && sp.photo) jobs.push(createTokenize(app, line, { k, src: 'assets/' + sp.photo, el: document.querySelector('[data-tok]'), from: sp.from, to: sp.to, nFrom: sp.nFrom, nTo: sp.nTo, blue: colors.blue, paper: colors.paper }));
+    if (sp && sp.photo) jobs.push(createTokenize(app, { src: 'assets/' + sp.photo, el: document.querySelector('[data-tok]'), from: sp.from, to: sp.to, nFrom: sp.nFrom, nTo: sp.nTo, blue: colors.blue, paper: colors.paper }));
   });
   await Promise.all(jobs);
   app.camera.position.set(0, 0, 11.3);
@@ -170,9 +170,24 @@ function fitStage(keys) {
       'line.y': +((H / 2 - cy) / (H / 2) - (b[1] + b[3]) / 2 * sc / (vhw / 2)).toFixed(4),
       'line.s': +sc.toFixed(4)
     });
+    for (const k of keys) if (k.asFirst) for (const n of ['line.x', 'line.y', 'line.s']) k.set[n] = keys[0].set[n];
   };
   fit();
   app.onMeasure(fit);   // before the choreography re-reads its keys (it measures after this)
+}
+
+/* ---------- the line rides the page where it belongs to a section ---------- */
+// The hero's wordmark leaves with the hero (it scrolls up and away, not across into the next chapter), and the closing
+// mark stays with the last section when the footer comes up beneath it, instead of hanging fixed on screen.
+function carry() {
+  if (!line) return;
+  const hero = document.querySelector('.page-index #hero'), foot = document.querySelector('#footer');
+  app.add(() => {
+    const vh = app.height; let dy = 0;
+    if (hero) { const r = hero.getBoundingClientRect(); if (r.bottom > -vh) dy += Math.max(0, -r.top) / vh * 2; }
+    if (foot) { const r = foot.getBoundingClientRect(); dy += Math.max(0, vh - r.top) / vh * 2; }
+    line.dy = dy;
+  }, 9);
 }
 
 /* ---------- touch the line ---------- */
@@ -450,7 +465,7 @@ createChoreo(app, keys);
 // the first key is where the page starts (so the intro lands on it)
 if (keys[0]) for (const [n, v] of Object.entries(keys[0].set)) if (P.has(n)) P.set(n, v, true);
 P.set('tone.view', P.get('tone') > 0.5 ? 1 : 0, true);
-labels(); touch(); occlusion();
+labels(); touch(); occlusion(); carry();
 window.__trace = { app, line };   // for stills, QA and editors
 if (app.gl) { await app.idle(); app.renderer.compile(app.scene, app.camera); }
 shaders(1);
