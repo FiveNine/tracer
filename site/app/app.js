@@ -304,7 +304,7 @@ function portal() {
 /* ---------- the token: a coin drawn as a dot screen, turning to the pointer ---------- */
 // The coin is painted (disc, rim, light, the mark knocked out) on a small hidden canvas, then redrawn as dots, one per
 // cell, sized by how much coin is under it: the same dot language as the tokenize chapter. It turns a little towards
-// the pointer and the light follows; it only redraws while on screen and while something changes.
+// the pointer; it only redraws while on screen and while something changes.
 function coin() {
   const cv = document.querySelector('[data-coin]'); if (!cv) return;
   const blue = colors.blue || '#0657ff', S = 380, src = document.createElement('canvas'); src.width = src.height = S;
@@ -314,10 +314,6 @@ function coin() {
   new IntersectionObserver(([e]) => { seen = e.isIntersecting; }, { threshold: 0 }).observe(cv);
   const fit = () => { const r = cv.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1); size = r.width; cv.width = cv.height = Math.round(r.width * dpr); o.setTransform(dpr, 0, 0, dpr, 0, 0); dirty = true; };
   fit(); addEventListener('resize', fit);
-  // dark rim blue → brand blue → light blue → pale highlight, smoothly
-  const stops = [[4, 65, 196], [6, 87, 255], [46, 107, 255], [143, 176, 255]];
-  const shade = v => { const f = v * (stops.length - 1), i = Math.min(stops.length - 2, Math.floor(f)), t = f - i, A = stops[i], B = stops[i + 1];
-    return `rgb(${A.map((c, j) => Math.round(c + (B[j] - c) * t)).join(',')})`; };
   function paint() {
     g.clearRect(0, 0, S, S);
     g.save(); g.translate(S / 2, S / 2); g.rotate(-0.35 + ay * 0.25);
@@ -332,13 +328,10 @@ function coin() {
     const d = g.getImageData(0, 0, S, S).data;
     o.clearRect(0, 0, size, size);
     const cell = Math.max(7, size / 64), k = S / size;
-    // the light: where the pointer is, the dots are paler (a sheen sliding across the face)
-    const lx = size * (0.3 - ax * 0.35), ly = size * (0.28 - ay * 0.3);
     for (let y = cell / 2; y < size; y += cell) for (let x = cell / 2; x < size; x += cell) {
       const a = d[(((y * k) | 0) * S + ((x * k) | 0)) * 4 + 3] / 255;
       if (a < 0.04) { o.globalAlpha = 0.13; o.fillStyle = blue; o.beginPath(); o.arc(x, y, 0.9, 0, 7); o.fill(); continue; }
-      const sh = Math.max(0, 1 - Math.hypot(x - lx, y - ly) / (size * 0.75));
-      o.globalAlpha = 1; o.fillStyle = shade(Math.min(1, sh * 1.35) * (a > 0.7 ? 1 : 0.5));
+      o.globalAlpha = 1; o.fillStyle = blue;   // flat brand blue: the dots' size alone draws the coin
       o.beginPath(); o.arc(x, y, Math.pow(a, 1.2) * cell * 0.5, 0, 7); o.fill();
     }
     o.globalAlpha = 1;
