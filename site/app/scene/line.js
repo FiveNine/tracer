@@ -61,7 +61,7 @@ const VERT = /* glsl */`
     vec2 n = vec2(-t.y, t.x);
     // a sharp turn narrows the ribbon, so the halo never sprays spikes at corners
     float bend = okA && okC ? dot(normalize(ta), normalize(tc)) : 1.;
-    float k = mix(.15, 1., smoothstep(-.1, .85, bend)) * step(.001, b.w);
+    float k = mix(.35, 1., smoothstep(-.7, .1, bend)) * step(.001, b.w);
     vec2 q = pb + n * aSide * uWidth * .5 * k;
     cb.xy = (q / uRes * 2. - 1.) * cb.w;
     gl_Position = cb;
@@ -69,7 +69,7 @@ const VERT = /* glsl */`
   }`;
 
 const FRAG = /* glsl */`
-  uniform vec3 uColor, uHot;
+  uniform vec3 uColor, uHot, uBg;
   uniform float uAlpha, uHalo, uDraw, uPulse, uPulseAmt, uClickU, uClickAge, uTime;
   varying float vSide, vU, vVis, vW;
   void main() {
@@ -91,7 +91,9 @@ const FRAG = /* glsl */`
     // the pulse brightens what is drawn; it never reveals the hidden jumps between strokes
     float a = body * uAlpha * min(1., vVis * (1. + hot * 1.4)) * step(.001, vVis);
     if (a < .003) discard;
-    gl_FragColor = vec4(col, clamp(a, 0., 1.));
+    // the final colour over the ground; blended with MAX (blue world) or MIN (paper world), so where the line crosses or
+    // retraces itself, or the halo meets the core, the brightest value wins instead of the layers adding up
+    gl_FragColor = vec4(mix(uBg, col, clamp(a, 0., 1.)), 1.);
   }`;
 
 export function createLine(app, o) {
@@ -125,11 +127,12 @@ export function createLine(app, o) {
     uTime: { value: 0 }, uNoise: { value: 0.3 }, uRes: { value: new THREE.Vector2(1, 1) }, uDpr: { value: 1 },
     uPointer: { value: new THREE.Vector2(-1e4, -1e4) }, uPush: { value: 0 },
     uColor: { value: new THREE.Color() }, uHot: { value: new THREE.Color() }, uDraw: { value: 1 },
-    uPulse: { value: 0 }, uPulseAmt: { value: 0 }, uClickU: { value: 0 }, uClickAge: { value: -1 }
+    uPulse: { value: 0 }, uPulseAmt: { value: 0 }, uClickU: { value: 0 }, uClickAge: { value: -1 }, uBg: { value: new THREE.Color() }
   };
   // two passes over one geometry: a wide soft halo, then the crisp line (the shared uniforms are the same objects)
   const matOf = halo => new THREE.ShaderMaterial({
     vertexShader: VERT, fragmentShader: FRAG, transparent: true, depthWrite: false, depthTest: false, side: THREE.DoubleSide,   // the ribbon's winding flips with its direction
+    blending: THREE.CustomBlending, blendEquation: THREE.MaxEquation, blendSrc: THREE.OneFactor, blendDst: THREE.OneFactor,
     uniforms: Object.assign({}, common, { uWidth: { value: 2 }, uAlpha: { value: 1 }, uHalo: { value: halo } })
   });
   const halo = new THREE.Mesh(g, matOf(1)), core = new THREE.Mesh(g, matOf(0));
@@ -147,6 +150,9 @@ export function createLine(app, o) {
     const tv = P.get('tone.view'), tone = tv * tv * tv * (tv * (tv * 6 - 15) + 10);   // smootherstep: little time in the in-between lavender
     bg.copy(cBlue).lerp(cPaper, tone);
     app.renderer.setClearColor(bg, 1);
+    common.uBg.value.copy(bg);
+    const eq = tone < 0.5 ? THREE.MaxEquation : THREE.MinEquation;
+    if (core.material.blendEquation !== eq) { core.material.blendEquation = halo.material.blendEquation = eq; }
     const w = app.width, h = app.height, dpr = app.renderer.getPixelRatio();
     const vh = 2 * Math.tan(THREE.MathUtils.degToRad(app.camera.fov / 2)) * app.camera.position.z, vw = vh * app.camera.aspect;
     group.position.set(P.get('line.x') * vw / 2, P.get('line.y') * vh / 2, 0);

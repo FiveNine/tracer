@@ -226,22 +226,19 @@ function loop(ids = ['g1', 'g2', 'g3', 'g4']) {
   return b.stroke(pts);
 }
 
-/** Base: blocks in a rising chain */
+/** Base: blocks in a rising chain; one polyline with every corner rounded (no unrounded turn where a link meets a block) */
 function blocks(n = 5, ids) {
-  const b = builder(), s = 0.62, gap = 1.02, rise = 0.32, x0 = -(n - 1) / 2 * gap, y0 = -(n - 1) / 2 * rise;
-  const pts = [];
+  const b = builder(), s = 0.62, gap = 1.02, rise = 0.32, x0 = -(n - 1) / 2 * gap, y0 = -(n - 1) / 2 * rise, h = s / 2;
+  const corners = [];
   for (let i = 0; i < n; i++) {
     const x = x0 + i * gap, y = y0 + i * rise;
-    // round the block from its left side, then over the top again to leave from its right side (no chord inside)
-    const h = s / 2, R = 0.14;
-    const sq = rounded([[x - h, y], [x - h, y + h], [x + h, y + h], [x + h, y - h], [x - h, y - h]], R, true);
-    const over = rounded([[x - h, y], [x - h, y + h], [x + h, y + h], [x + h, y]], R);
-    pts.push([x - h, y], ...sq.slice(1), ...over.slice(1));
-    if (i < n - 1) pts.push([x + s / 2, y], [x + gap - s / 2, y + rise]);   // the link
+    // in at the left side, once round, over the top again and out of the right side
+    corners.push([x - h, y], [x - h, y + h], [x + h, y + h], [x + h, y - h], [x - h, y - h], [x - h, y + h], [x + h, y + h], [x + h, y]);
+    if (i < n - 1) { const mx = x + gap / 2; corners.push([mx, y], [mx, y + rise]); }
     if (ids && ids[i]) b.node(ids[i], x, y);
   }
   b.node('chain', x0 + (n - 1) * gap, y0 + (n - 1) * rise + s);
-  return b.stroke(pts);
+  return b.stroke(rounded(corners, 0.12, false, 10));
 }
 
 /** the ecosystem: a hub (the t's rounded square) and four branches with an endpoint ring each */
