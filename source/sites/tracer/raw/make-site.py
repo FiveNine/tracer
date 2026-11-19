@@ -155,11 +155,12 @@ pages['index'], xpages['index'] = page(
             {'k': 'Supply', 'v': '12.5 billion', 'note': 'Minted once. No minting, ever. ' + TBC},
             {'k': 'Held in', 'v': 'Five Safes', 'note': 'Foundation, team, ecosystem, treasury, early backers.'}],
             ctas=[{'label': 'Token guide', 'href': 'token'}, {'label': 'Buy on QuickSwap', 'href': '@buy', 'ghost': True}]),
-        sec('governance', 'steps', 'blue', 'hidden', 1, eyebrow='Governance', title='Hold. Delegate. Vote. Execute.', items=[
+        sec('governance', 'timelock', 'paper', 'hidden', 1, full=True, eyebrow='Governance', title='Hold. Delegate. Vote. _Wait._ Execute.', items=[
             {'title': 'Hold TRCR', 'body': 'Your tokens are your voting weight.'},
             {'title': 'Delegate', 'body': 'To yourself or someone you trust. Votes only count once delegated.'},
             {'title': 'Vote or propose', 'body': 'On Endorsers, payment tokens, the marketplace and upgrades.'},
-            {'title': 'The Timelock executes', 'body': 'Passed proposals run on-chain after a delay. No back door.'}],
+            {'title': 'The Timelock executes', 'body': 'A passed proposal waits in public before it runs on-chain. No back door.'}],
+            dial={'label': 'Timelock · example proposal', 'caption': 'until it can run on-chain', 'secs': 101520, 'total': 172800},
             ctas=[{'label': 'How governance works', 'href': 'governance', 'ghost': True}]),
         sec('base', 'cta', 'blue', 'hidden', 1, eyebrow='Built on Base', title='Ethereum security, at cents a move.', lede=['Base is an Ethereum layer 2 incubated by Coinbase. New to it? The guide takes you from no wallet to holding TRCR in six steps.'],
             items=[], ctas=[{'label': 'How to Base', 'href': 'base'}]),

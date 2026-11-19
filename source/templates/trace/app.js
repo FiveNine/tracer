@@ -233,7 +233,7 @@ function ui() {
     if (bad.length) { msg.textContent = 'Please fill in ' + bad.map(i => i.name).join(', ') + '.'; msg.className = 'form-msg err'; bad[0].focus(); return; }
     msg.textContent = (C.forms && C.forms.sent) || 'Thanks, we\'ll get back to you.'; msg.className = 'form-msg ok'; f.reset();
   }));
-  tracy(); portal();
+  tracy(); portal(); timelock();
 }
 
 /* ---------- the places: full round photos that slide in from the right ---------- */
@@ -299,6 +299,24 @@ function portal() {
   addEventListener('resize', () => layout(true));
   held(); run();
   window.__portal = { go, get i() { return i; } };   // for stills and QA
+}
+
+/* ---------- the Timelock dial: an example proposal counting down, second by second, while it is on screen ---------- */
+function timelock() {
+  const el = document.querySelector('[data-tl]'); if (!el) return;
+  const total = +el.dataset.total, arc = el.querySelector('[data-tl-arc]'), head = el.querySelector('[data-tl-head]'), t = el.querySelector('[data-tl-t]');
+  let secs = +el.dataset.secs, seen = false;
+  const pad = v => String(v).padStart(2, '0');
+  const draw = () => {
+    const f = Math.max(0, secs) / total;
+    arc.style.strokeDashoffset = (100 - f * 100).toFixed(3);
+    head.style.transform = `rotate(${(f * 360).toFixed(2)}deg)`;
+    const d = Math.floor(secs / 86400), h = Math.floor(secs % 86400 / 3600), m = Math.floor(secs % 3600 / 60), s = secs % 60;
+    t.textContent = `${d ? d + 'd ' : ''}${pad(h)}:${pad(m)}:${pad(s)}`;
+  };
+  new IntersectionObserver(([e]) => { seen = e.isIntersecting; }, { threshold: 0.2 }).observe(el);
+  setInterval(() => { if (seen && !document.hidden && secs > 0) { secs--; draw(); } }, 1000);
+  draw();
 }
 
 function tracy() {

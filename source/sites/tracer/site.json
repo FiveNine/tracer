@@ -603,11 +603,12 @@
      },
      {
       "id": "governance",
-      "kind": "steps",
-      "tone": "blue",
+      "kind": "timelock",
+      "tone": "paper",
       "stage": "none",
+      "full": true,
       "eyebrow": "Governance",
-      "title": "Hold. Delegate. Vote. Execute.",
+      "title": "Hold. Delegate. Vote. _Wait._ Execute.",
       "items": [
        {
         "title": "Hold TRCR",
@@ -623,9 +624,15 @@
        },
        {
         "title": "The Timelock executes",
-        "body": "Passed proposals run on-chain after a delay. No back door."
+        "body": "A passed proposal waits in public before it runs on-chain. No back door."
        }
       ],
+      "dial": {
+       "label": "Timelock · example proposal",
+       "caption": "until it can run on-chain",
+       "secs": 101520,
+       "total": 172800
+      },
       "ctas": [
        {
         "label": "How governance works",
@@ -2066,7 +2073,7 @@
        "line.alpha": 0,
        "pulse.amt": 0,
        "line.shape": 1,
-       "tone": 0
+       "tone": 1
       },
       "shift": "-18vh",
       "hold": 0.45

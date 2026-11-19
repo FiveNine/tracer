@@ -1,6 +1,6 @@
 /*
  * trace: a multi-page site drawn by one line of light. render() writes every page as its own HTML file; each page's
- * sections are typed blocks (hero, tokenize, portal, lens, pillars, steps, facts, safes, cards, timeline, team, faq, params, prose,
+ * sections are typed blocks (hero, tokenize, portal, timelock, lens, pillars, steps, facts, safes, cards, timeline, team, faq, params, prose,
  * contact, cta) and each section names the world's tone (blue | paper) and where the line sits (stage).
  * The line's shapes and scroll keys per page live in experience.pages[page].
  */
@@ -88,6 +88,21 @@ const KINDS = {
       <div class="pt-stage" data-pt-stage>
         ${it.map((x, i) => `<button type="button" class="pt-c" data-pt-c="${i}" tabindex="-1" aria-label="${esc(x.title)}"><span style="background-image:${img(i)}"></span></button>`).join('')}
         <svg class="pt-ring" data-pt-ring viewBox="0 0 100 100" aria-hidden="true"><circle class="pt-track" cx="50" cy="50" r="49"/><circle class="pt-fill" data-pt-fill cx="50" cy="50" r="49" pathLength="100"/></svg>
+      </div>
+    </div>`;
+  },
+  // governance as one sentence with its pause marked ("_Wait._"), the steps, and the Timelock as a live dial (app.js timelock())
+  timelock(s, c) {
+    const title = esc(s.title).replace(/_(.+?)_/g, '<em>$1</em>');
+    const d = s.dial || {};
+    return `<div class="tl">
+      <div class="tl-copy">${s.eyebrow ? `<p class="eyebrow" data-reveal="fade">${esc(s.eyebrow)}</p>` : ''}<h2 data-reveal="rise">${title}</h2>
+        <ol class="tl-steps">${s.items.map((it, i) => `<li data-reveal="fade" data-delay="${120 + i * 110}"${i === s.items.length - 1 ? ' class="is-key"' : ''}><span class="n">${String(i + 1).padStart(2, '0')}</span><div><b>${esc(it.title)}</b><p>${md(it.body)}</p></div></li>`).join('')}</ol>
+        ${ctas(s.ctas, c)}</div>
+      <div class="tl-dial" data-tl data-secs="${+d.secs || 101520}" data-total="${+d.total || 172800}" data-reveal="fade" data-delay="200">
+        <div class="tl-face" aria-hidden="true"></div><div class="tl-ticks" aria-hidden="true"></div>
+        <svg viewBox="0 0 100 100" aria-hidden="true"><circle class="tl-track" cx="50" cy="50" r="46.5"/><circle class="tl-arc" data-tl-arc cx="50" cy="50" r="46.5" pathLength="100"/><circle class="tl-head" data-tl-head cx="50" cy="3.5" r="1.5"/></svg>
+        <div class="tl-mid"><span class="mono">${esc(d.label || 'Timelock')}</span><b data-tl-t>–</b><span>${esc(d.caption || '')}</span></div>
       </div>
     </div>`;
   },
