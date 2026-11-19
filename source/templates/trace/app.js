@@ -233,7 +233,7 @@ function ui() {
     if (bad.length) { msg.textContent = 'Please fill in ' + bad.map(i => i.name).join(', ') + '.'; msg.className = 'form-msg err'; bad[0].focus(); return; }
     msg.textContent = (C.forms && C.forms.sent) || 'Thanks, we\'ll get back to you.'; msg.className = 'form-msg ok'; f.reset();
   }));
-  tracy(); portal(); timelock();
+  tracy(); portal(); timelock(); coin();
 }
 
 /* ---------- the places: full round photos that slide in from the right ---------- */
@@ -299,6 +299,59 @@ function portal() {
   addEventListener('resize', () => layout(true));
   held(); run();
   window.__portal = { go, get i() { return i; } };   // for stills and QA
+}
+
+/* ---------- the token: a coin drawn as a dot screen, turning to the pointer ---------- */
+// The coin is painted (disc, rim, light, the mark knocked out) on a small hidden canvas, then redrawn as dots, one per
+// cell, sized by how much coin is under it: the same dot language as the tokenize chapter. It turns a little towards
+// the pointer and the light follows; it only redraws while on screen and while something changes.
+function coin() {
+  const cv = document.querySelector('[data-coin]'); if (!cv) return;
+  const blue = colors.blue || '#0657ff', S = 380, src = document.createElement('canvas'); src.width = src.height = S;
+  const g = src.getContext('2d', { willReadFrequently: true }), o = cv.getContext('2d');
+  const mark = new Image(); let ready = false; mark.onload = () => { ready = true; dirty = true; }; mark.src = cv.dataset.mark;
+  let seen = false, dirty = true, ax = -0.35, ay = 0, tx = -0.35, ty = 0, size = 0;
+  new IntersectionObserver(([e]) => { seen = e.isIntersecting; }, { threshold: 0 }).observe(cv);
+  const fit = () => { const r = cv.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1); size = r.width; cv.width = cv.height = Math.round(r.width * dpr); o.setTransform(dpr, 0, 0, dpr, 0, 0); dirty = true; };
+  fit(); addEventListener('resize', fit);
+  // dark rim blue → brand blue → light blue → pale highlight, smoothly
+  const stops = [[4, 65, 196], [6, 87, 255], [46, 107, 255], [143, 176, 255]];
+  const shade = v => { const f = v * (stops.length - 1), i = Math.min(stops.length - 2, Math.floor(f)), t = f - i, A = stops[i], B = stops[i + 1];
+    return `rgb(${A.map((c, j) => Math.round(c + (B[j] - c) * t)).join(',')})`; };
+  function paint() {
+    g.clearRect(0, 0, S, S);
+    g.save(); g.translate(S / 2, S / 2); g.rotate(-0.35 + ay * 0.25);
+    const sx = Math.max(0.55, Math.cos(ax)), r = S * 0.4;
+    g.scale(sx, 1);
+    g.fillStyle = 'rgba(0,0,0,.5)'; g.beginPath(); g.arc(Math.sign(ax || 1) * -r * 0.08 / sx * (1 - sx) * 4, 0, r, 0, 7); g.fill();   // the edge, showing as it turns
+    g.fillStyle = '#000'; g.beginPath(); g.arc(0, 0, r, 0, 7); g.fill();
+    g.globalCompositeOperation = 'destination-out';
+    g.lineWidth = 3; g.beginPath(); g.arc(0, 0, r * 0.87, 0, 7); g.stroke();
+    if (ready) g.drawImage(mark, -r * 0.3, -r * 0.48, r * 0.6, r * 0.92);
+    g.restore(); g.globalCompositeOperation = 'source-over';
+    const d = g.getImageData(0, 0, S, S).data;
+    o.clearRect(0, 0, size, size);
+    const cell = Math.max(7, size / 64), k = S / size;
+    // the light: where the pointer is, the dots are paler (a sheen sliding across the face)
+    const lx = size * (0.3 - ax * 0.35), ly = size * (0.28 - ay * 0.3);
+    for (let y = cell / 2; y < size; y += cell) for (let x = cell / 2; x < size; x += cell) {
+      const a = d[(((y * k) | 0) * S + ((x * k) | 0)) * 4 + 3] / 255;
+      if (a < 0.04) { o.globalAlpha = 0.13; o.fillStyle = blue; o.beginPath(); o.arc(x, y, 0.9, 0, 7); o.fill(); continue; }
+      const sh = Math.max(0, 1 - Math.hypot(x - lx, y - ly) / (size * 0.75));
+      o.globalAlpha = 1; o.fillStyle = shade(Math.min(1, sh * 1.35) * (a > 0.7 ? 1 : 0.5));
+      o.beginPath(); o.arc(x, y, Math.pow(a, 1.2) * cell * 0.5, 0, 7); o.fill();
+    }
+    o.globalAlpha = 1;
+  }
+  app.add((t, dt) => {
+    if (!seen) return;
+    const I = app.input;
+    if (!app.reduced && I.fine && I.moved) { const r = cv.getBoundingClientRect(); tx = Math.max(-1, Math.min(1, (I.x - r.left - r.width / 2) / innerWidth * 2.2)) * 0.75; ty = Math.max(-1, Math.min(1, (I.y - r.top - r.height / 2) / innerHeight * 2)) * 0.6; }
+    else if (!app.reduced) { tx = -0.35 + Math.sin(t * 0.4) * 0.25; ty = Math.sin(t * 0.3) * 0.15; }   // touch: a slow idle turn
+    const k = 1 - Math.exp(-dt * 4), nx = ax + (tx - ax) * k, ny = ay + (ty - ay) * k;
+    if (Math.abs(nx - ax) + Math.abs(ny - ay) > 0.0008) { ax = nx; ay = ny; dirty = true; }
+    if (dirty) { paint(); dirty = false; }
+  }, 70);
 }
 
 /* ---------- the Timelock dial: an example proposal counting down, second by second, while it is on screen ---------- */

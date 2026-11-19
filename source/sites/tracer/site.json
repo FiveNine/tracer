@@ -561,45 +561,52 @@
      },
      {
       "id": "token",
-      "kind": "facts",
+      "kind": "coin",
       "tone": "paper",
       "stage": "none",
+      "full": true,
       "eyebrow": "The token",
-      "title": "TRCR, at a glance.",
+      "title": "What is TRCR?",
       "lede": [
-       "The airdrop and the QuickSwap launch are next. The token guide has the contract, how to buy and where every token sits."
+       "The governance token of the Carrot protocol, on Base. Hold it, delegate it, vote with it."
       ],
       "items": [
+       {
+        "title": "Vote on the protocol",
+        "tag": "Governance",
+        "href": "governance"
+       },
+       {
+        "title": "Delegate your votes",
+        "tag": "Guide",
+        "href": "governance#how"
+       },
+       {
+        "title": "Get it in the airdrop",
+        "tag": "Next",
+        "href": "token#airdrop"
+       },
+       {
+        "title": "Buy on QuickSwap",
+        "tag": "At launch",
+        "href": "@buy"
+       }
+      ],
+      "facts": [
        {
         "k": "Network",
         "v": "Base"
        },
        {
-        "k": "Symbol",
-        "v": "TRCR"
-       },
-       {
         "k": "Supply",
-        "v": "12.5 billion",
-        "note": "Minted once. No minting, ever. {tbc}"
+        "v": "12.5B"
        },
        {
-        "k": "Held in",
-        "v": "Five Safes",
-        "note": "Foundation, team, ecosystem, treasury, early backers."
+        "k": "Minting",
+        "v": "Never"
        }
       ],
-      "ctas": [
-       {
-        "label": "Token guide",
-        "href": "token"
-       },
-       {
-        "label": "Buy on QuickSwap",
-        "href": "@buy",
-        "ghost": true
-       }
-      ]
+      "chip": true
      },
      {
       "id": "governance",

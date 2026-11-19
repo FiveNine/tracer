@@ -150,11 +150,13 @@ pages['index'], xpages['index'] = page(
                  'credit': 'Photo: Tim Brunauer / GIZ, [CC BY-SA 4.0](https://commons.wikimedia.org/wiki/File:Charged_and_inoculated_biochar_ready_for_soil_application.jpg)'}],
             ctas=[{'label': 'Explore the ecosystem', 'href': 'ecosystem', 'ghost': True}],
             note='The kinds of removal behind CRRT. Endorsed projects are listed on the marketplace at launch.'),
-        sec('token', 'facts', 'paper', 'hidden', 1, eyebrow='The token', title='TRCR, at a glance.', lede=['The airdrop and the QuickSwap launch are next. The token guide has the contract, how to buy and where every token sits.'], items=[
-            {'k': 'Network', 'v': 'Base'}, {'k': 'Symbol', 'v': 'TRCR'},
-            {'k': 'Supply', 'v': '12.5 billion', 'note': 'Minted once. No minting, ever. ' + TBC},
-            {'k': 'Held in', 'v': 'Five Safes', 'note': 'Foundation, team, ecosystem, treasury, early backers.'}],
-            ctas=[{'label': 'Token guide', 'href': 'token'}, {'label': 'Buy on QuickSwap', 'href': '@buy', 'ghost': True}]),
+        sec('token', 'coin', 'paper', 'hidden', 1, full=True, eyebrow='The token', title='What is TRCR?',
+            lede=['The governance token of the Carrot protocol, on Base. Hold it, delegate it, vote with it.'],
+            items=[{'title': 'Vote on the protocol', 'tag': 'Governance', 'href': 'governance'},
+                   {'title': 'Delegate your votes', 'tag': 'Guide', 'href': 'governance#how'},
+                   {'title': 'Get it in the airdrop', 'tag': 'Next', 'href': 'token#airdrop'},
+                   {'title': 'Buy on QuickSwap', 'tag': 'At launch', 'href': '@buy'}],
+            facts=[{'k': 'Network', 'v': 'Base'}, {'k': 'Supply', 'v': '12.5B'}, {'k': 'Minting', 'v': 'Never'}], chip=True),
         sec('governance', 'timelock', 'paper', 'hidden', 1, full=True, eyebrow='Governance', title='Hold. Delegate. Vote. _Wait._ Execute.', items=[
             {'title': 'Hold TRCR', 'body': 'Your tokens are your voting weight.'},
             {'title': 'Delegate', 'body': 'To yourself or someone you trust. Votes only count once delegated.'},

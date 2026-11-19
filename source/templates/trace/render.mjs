@@ -1,6 +1,6 @@
 /*
  * trace: a multi-page site drawn by one line of light. render() writes every page as its own HTML file; each page's
- * sections are typed blocks (hero, tokenize, portal, timelock, lens, pillars, steps, facts, safes, cards, timeline, team, faq, params, prose,
+ * sections are typed blocks (hero, tokenize, portal, timelock, coin, lens, pillars, steps, facts, safes, cards, timeline, team, faq, params, prose,
  * contact, cta) and each section names the world's tone (blue | paper) and where the line sits (stage).
  * The line's shapes and scroll keys per page live in experience.pages[page].
  */
@@ -88,6 +88,19 @@ const KINDS = {
       <div class="pt-stage" data-pt-stage>
         ${it.map((x, i) => `<button type="button" class="pt-c" data-pt-c="${i}" tabindex="-1" aria-label="${esc(x.title)}"><span style="background-image:${img(i)}"></span></button>`).join('')}
         <svg class="pt-ring" data-pt-ring viewBox="0 0 100 100" aria-hidden="true"><circle class="pt-track" cx="50" cy="50" r="49"/><circle class="pt-fill" data-pt-fill cx="50" cy="50" r="49" pathLength="100"/></svg>
+      </div>
+    </div>`;
+  },
+  // the token as an object: a coin drawn as a dot screen that turns to the pointer (app.js coin()), what you can do
+  // with it as rows of links, and the key facts under the coin
+  coin(s, c) {
+    return `<div class="cn">
+      <div class="cn-copy">${head(s)}
+        <nav class="cn-uses" aria-label="What you can do with ${esc(c.token.symbol)}">${s.items.map((it, i) => { const h = href(it.href, c); return `<a href="${esc(h)}"${ext(h)} data-reveal="fade" data-delay="${100 + i * 80}"><span>${esc(it.title)}</span><em>${esc(it.tag || '')} ${/^https?:/.test(h) ? '↗' : '→'}</em></a>`; }).join('')}</nav>
+        ${s.chip ? contractChip(c, 'cn-chip') : ''}</div>
+      <div class="cn-art">
+        <canvas class="cn-coin" data-coin data-mark="assets/${esc(s.mark || 'mark-blue.svg')}" aria-hidden="true"></canvas>
+        <dl class="cn-facts">${(s.facts || []).map(f => `<div><dt>${esc(f.k)}</dt><dd>${md(f.v)}</dd></div>`).join('')}</dl>
       </div>
     </div>`;
   },
