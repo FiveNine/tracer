@@ -233,7 +233,7 @@ function ui() {
     if (bad.length) { msg.textContent = 'Please fill in ' + bad.map(i => i.name).join(', ') + '.'; msg.className = 'form-msg err'; bad[0].focus(); return; }
     msg.textContent = (C.forms && C.forms.sent) || 'Thanks, we\'ll get back to you.'; msg.className = 'form-msg ok'; f.reset();
   }));
-  tracy(); portal(); timelock(); coin();
+  tracy(); portal(); timelock(); coin(); dotsHero();
 }
 
 /* ---------- the places: full round photos that slide in from the right ---------- */
@@ -307,7 +307,7 @@ function portal() {
 // the pointer; it only redraws while on screen and while something changes.
 function coin() {
   const cv = document.querySelector('[data-coin]'); if (!cv) return;
-  const blue = colors.blue || '#0657ff', S = 380, src = document.createElement('canvas'); src.width = src.height = S;
+  let blue = colors.blue || '#0657ff'; const S = 380, src = document.createElement('canvas'); src.width = src.height = S;
   const g = src.getContext('2d', { willReadFrequently: true }), o = cv.getContext('2d');
   const mark = new Image(); let ready = false; mark.onload = () => { ready = true; dirty = true; }; mark.src = cv.dataset.mark;
   let seen = false, dirty = true, ax = -0.35, ay = 0, tx = -0.35, ty = 0, size = 0;
@@ -343,8 +343,60 @@ function coin() {
     else if (!app.reduced) { tx = -0.35 + Math.sin(t * 0.4) * 0.25; ty = Math.sin(t * 0.3) * 0.15; }   // touch: a slow idle turn
     const k = 1 - Math.exp(-dt * 4), nx = ax + (tx - ax) * k, ny = ay + (ty - ay) * k;
     if (Math.abs(nx - ax) + Math.abs(ny - ay) > 0.0008) { ax = nx; ay = ny; dirty = true; }
+    const col = getComputedStyle(cv).color; if (col !== blue) { blue = col; dirty = true; }   // the world's ink: white on blue, blue on paper
     if (dirty) { paint(); dirty = false; }
   }, 70);
+}
+
+/* ---------- a page's opening glyph, as a dot screen the pointer parts ---------- */
+// A word, a sign or the mark is painted on a hidden canvas and redrawn as dots (one per cell, sized by coverage). The
+// dots grow in from left to right the first time it is seen; near the pointer they shrink and step aside.
+function dotsHero() {
+  document.querySelectorAll('[data-dots]').forEach(async cv => {
+    const S = 420, src = document.createElement('canvas'); src.width = src.height = S;
+    const g = src.getContext('2d', { willReadFrequently: true }), o = cv.getContext('2d');
+    if (cv.dataset.img) {
+      const im = new Image(); im.src = cv.dataset.img; await im.decode().catch(() => {});
+      const k = Math.min(S * 0.8 / im.width, S * 0.8 / im.height); g.drawImage(im, (S - im.width * k) / 2, (S - im.height * k) / 2, im.width * k, im.height * k);
+    } else {
+      await document.fonts.ready;
+      const t = cv.dataset.glyph || '·'; let fs = S * 0.9;
+      g.font = `500 ${fs}px "Space Grotesk", sans-serif`; const w = g.measureText(t).width; fs = Math.min(fs, fs * S * 0.92 / w);
+      g.font = `500 ${fs}px "Space Grotesk", sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#000'; g.fillText(t, S / 2, S / 2 + fs * 0.04);
+    }
+    const data = g.getImageData(0, 0, S, S).data;
+    let dots = [], size = 0, cell = 8, seen = false, t0 = -1, col = '';
+    const fit = () => {
+      const r = cv.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1); size = r.width;
+      cv.width = cv.height = Math.round(size * dpr); o.setTransform(dpr, 0, 0, dpr, 0, 0);
+      cell = Math.max(7, size / 52); dots = [];
+      for (let y = cell / 2; y < size; y += cell) for (let x = cell / 2; x < size; x += cell) {
+        const a = data[(((y / size * S) | 0) * S + ((x / size * S) | 0)) * 4 + 3] / 255;
+        dots.push({ x, y, r: a < 0.04 ? 0 : Math.pow(a, 1.1) * cell * 0.5 });
+      }
+    };
+    fit(); addEventListener('resize', fit);
+    new IntersectionObserver(([e]) => { seen = e.isIntersecting; }, { threshold: 0.1 }).observe(cv);
+    app.add(t => {
+      if (!seen || !size) return;
+      if (t0 < 0) t0 = t;   // the first frame it is seen on (the app clock starts after this module is set up)
+      const c = getComputedStyle(cv).color; col = c;
+      const r = cv.getBoundingClientRect(), I = app.input, live = I.fine && I.moved && !app.reduced;
+      const px = I.x - r.left, py = I.y - r.top, R = size * 0.16;
+      o.clearRect(0, 0, size, size); o.fillStyle = col;
+      for (const d of dots) {
+        const grow = app.reduced ? 1 : Math.min(1, Math.max(0, (t - t0 - d.x / size * 0.9) / 0.55)), e = grow * grow * (3 - 2 * grow);
+        if (!d.r) { o.globalAlpha = 0.14 * e; o.beginPath(); o.arc(d.x, d.y, 0.9, 0, 7); o.fill(); continue; }
+        let x = d.x, y = d.y, rr = d.r * e;
+        if (live) {
+          const dx = d.x - px, dy = d.y - py, dist = Math.hypot(dx, dy);
+          if (dist < R) { const f = 1 - dist / R; rr *= 1 - f * 0.75; x += dx / (dist || 1) * f * cell * 0.9; y += dy / (dist || 1) * f * cell * 0.9; }
+        }
+        o.globalAlpha = 1; o.beginPath(); o.arc(x, y, rr, 0, 7); o.fill();
+      }
+      o.globalAlpha = 1;
+    }, 71);
+  });
 }
 
 /* ---------- the Timelock dial: an example proposal counting down, second by second, while it is on screen ---------- */

@@ -1,6 +1,6 @@
 /*
  * trace: a multi-page site drawn by one line of light. render() writes every page as its own HTML file; each page's
- * sections are typed blocks (hero, tokenize, portal, timelock, coin, lens, pillars, steps, facts, safes, cards, timeline, team, faq, params, prose,
+ * sections are typed blocks (hero, tokenize, portal, timelock, coin, dots, ledger, lens, pillars, steps, facts, safes, cards, timeline, team, faq, params, prose,
  * contact, cta) and each section names the world's tone (blue | paper) and where the line sits (stage).
  * The line's shapes and scroll keys per page live in experience.pages[page].
  */
@@ -77,7 +77,7 @@ const KINDS = {
   portal(s, c) {
     const it = s.items, n = it.length, img = i => `url(assets/${esc(it[(i + n) % n].img)})`;
     return `<div class="pt" data-pt data-items="${esc(JSON.stringify(it.map(x => ({ t: x.title, b: x.body, img: 'assets/' + x.img, credit: x.credit }))))}">
-      <div class="pt-copy">${head(s)}
+      <div class="pt-copy">${head(s, s.h1 ? 'h1' : 'h2')}
         <div class="pt-now" aria-live="polite"><span class="pt-n"><b data-pt-n>01</b><small> / ${String(n).padStart(2, '0')}</small></span>
           <b class="pt-t" data-pt-t>${esc(it[0].title)}</b><p data-pt-b>${md(it[0].body)}</p></div>
   <div class="pt-strip">${it.map((x, i) => `<button type="button" data-pt-to="${i}" style="background-image:${img(i)}"${i ? '' : ' aria-current="true"'} aria-label="${esc(x.title)}"></button>`).join('')}
@@ -95,7 +95,7 @@ const KINDS = {
   // with it as rows of links, and the key facts under the coin
   coin(s, c) {
     return `<div class="cn">
-      <div class="cn-copy">${head(s)}
+      <div class="cn-copy">${head(s, s.h1 ? 'h1' : 'h2')}
         <nav class="cn-uses" aria-label="What you can do with ${esc(c.token.symbol)}">${s.items.map((it, i) => { const h = href(it.href, c); return `<a href="${esc(h)}"${ext(h)} data-reveal="fade" data-delay="${100 + i * 80}"><span>${esc(it.title)}</span><em>${esc(it.tag || '')} ${/^https?:/.test(h) ? '↗' : '→'}</em></a>`; }).join('')}</nav>
         ${s.chip ? contractChip(c, 'cn-chip') : ''}</div>
       <div class="cn-art">
@@ -104,12 +104,29 @@ const KINDS = {
       </div>
     </div>`;
   },
+  // a page's opening: the copy, and a glyph or the mark drawn as a dot screen that the pointer parts (app.js dotsHero())
+  dots(s, c) {
+    return `<div class="dh${s.compact ? ' compact' : ''}">
+      <div class="dh-copy">${head(s, 'h1')}${ctas(s.ctas, c)}${s.chip ? contractChip(c, 'hero-chip') : ''}</div>
+      <canvas class="dh-art" data-dots${s.glyph ? ` data-glyph="${esc(s.glyph)}"` : ''}${s.img ? ` data-img="assets/${esc(s.img)}"` : ''} aria-hidden="true"></canvas>
+    </div>`;
+  },
+  // the supply in the open: the headline numbers, then every Safe with its address (or when it will be published)
+  ledger(s, c) {
+    const ex = (c.links.explorer && c.links.explorer.href) || 'https://basescan.org';
+    return `${head(s)}
+      <div class="lg-m">${(s.metrics || []).map((m, i) => `<div data-reveal="fade" data-delay="${80 + i * 70}"><span>${esc(m.k)}</span><b${m.accent ? ' class="z"' : ''}>${md(m.v)}</b><p>${md(m.note || '')}</p></div>`).join('')}</div>
+      <div class="lg-panel" data-reveal="fade" data-delay="200">${s.items.map((it, i) => `<div class="lg-r"><span class="n">${String(i + 1).padStart(2, '0')}</span><b>${esc(it.name)}</b><span class="lg-p">${md(it.purpose)}</span>
+        ${it.address ? `<a href="${esc(ex + '/address/' + it.address)}" target="_blank" rel="noopener"><code>${esc(it.address.slice(0, 6) + '…' + it.address.slice(-4))}</code> Basescan ↗</a>` : '<code>Address published at launch</code>'}</div>`).join('')}</div>
+      ${s.note ? `<p class="note">${md(s.note)}</p>` : ''}`;
+  },
   // governance as one sentence with its pause marked ("_Wait._"), the steps, and the Timelock as a live dial (app.js timelock())
   timelock(s, c) {
     const title = esc(s.title).replace(/_(.+?)_/g, '<em>$1</em>');
     const d = s.dial || {};
     return `<div class="tl">
-      <div class="tl-copy">${s.eyebrow ? `<p class="eyebrow" data-reveal="fade">${esc(s.eyebrow)}</p>` : ''}<h2 data-reveal="rise">${title}</h2>
+      <div class="tl-copy">${s.eyebrow ? `<p class="eyebrow" data-reveal="fade">${esc(s.eyebrow)}</p>` : ''}<${s.h1 ? 'h1' : 'h2'} data-reveal="rise">${title}</${s.h1 ? 'h1' : 'h2'}>
+        ${s.lede ? `<div class="lede" data-reveal="fade" data-delay="120">${paras(s.lede)}</div>` : ''}
         <ol class="tl-steps">${s.items.map((it, i) => `<li data-reveal="fade" data-delay="${120 + i * 110}"${i === s.items.length - 1 ? ' class="is-key"' : ''}><span class="n">${String(i + 1).padStart(2, '0')}</span><div><b>${esc(it.title)}</b><p>${md(it.body)}</p></div></li>`).join('')}</ol>
         ${ctas(s.ctas, c)}</div>
       <div class="tl-dial" data-tl data-secs="${+d.secs || 101520}" data-total="${+d.total || 172800}" data-reveal="fade" data-delay="200">

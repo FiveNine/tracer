@@ -772,27 +772,53 @@
     "sections": [
      {
       "id": "top",
-      "kind": "hero",
+      "kind": "coin",
       "tone": "blue",
-      "stage": "right",
+      "stage": "none",
       "full": true,
+      "h1": true,
       "eyebrow": "TRCR token",
       "title": "Everything about TRCR, in one place.",
       "lede": [
        "The contract, how to buy, the airdrop and where every token sits. If someone sent you here with a question, the answer is on this page."
       ],
-      "chip": true,
-      "ctas": [
+      "items": [
        {
-        "label": "Buy on QuickSwap",
-        "href": "@buy"
+        "title": "The contract and key facts",
+        "tag": "Facts",
+        "href": "#contract"
        },
        {
-        "label": "Airdrop",
-        "href": "#airdrop",
-        "ghost": true
+        "title": "Buy TRCR in five steps",
+        "tag": "How to buy",
+        "href": "#buy"
+       },
+       {
+        "title": "The airdrop on Base",
+        "tag": "Airdrop",
+        "href": "#airdrop"
+       },
+       {
+        "title": "Where every token sits",
+        "tag": "Five Safes",
+        "href": "#distribution"
        }
-      ]
+      ],
+      "facts": [
+       {
+        "k": "Network",
+        "v": "Base"
+       },
+       {
+        "k": "Supply",
+        "v": "12.5B"
+       },
+       {
+        "k": "Minting",
+        "v": "Never"
+       }
+      ],
+      "chip": true
      },
      {
       "id": "contract",
@@ -887,7 +913,7 @@
       "id": "airdrop",
       "kind": "prose",
       "tone": "blue",
-      "stage": "right",
+      "stage": "none",
       "full": true,
       "eyebrow": "Airdrop",
       "title": "The TRCR airdrop on Base.",
@@ -906,15 +932,38 @@
      },
      {
       "id": "distribution",
-      "kind": "safes",
+      "kind": "ledger",
       "tone": "paper",
-      "stage": "right",
-      "full": true,
+      "stage": "none",
       "eyebrow": "Distribution",
-      "title": "Five Safes hold the supply.",
+      "title": "Nothing hidden.",
       "lede": [
-       "Every TRCR outside circulation sits in a multisig Safe on Base, open for anyone to check."
+       "Every TRCR was minted once, at genesis. Everything outside circulation sits in five multisig Safes on Base, open for anyone to check."
       ],
+      "metrics": [
+       {
+        "k": "Total supply",
+        "v": "12.5B",
+        "note": "TRCR on Base {tbc}"
+       },
+       {
+        "k": "Minted since genesis",
+        "v": "0",
+        "accent": true,
+        "note": "There is no mint function"
+       },
+       {
+        "k": "Held in",
+        "v": "5 Safes",
+        "note": "Multisigs, listed below"
+       },
+       {
+        "k": "Burns",
+        "v": "Only down",
+        "note": "Holders can burn their own"
+       }
+      ],
+      "note": "Allocations per Safe are published with the addresses at launch.",
       "items": [
        {
         "name": "Tracer Foundation",
@@ -952,80 +1001,7 @@
       "askTracy": true
      }
     ],
-    "tags": [
-     {
-      "id": "f1",
-      "k": 0,
-      "label": "Foundation",
-      "pos": "up"
-     },
-     {
-      "id": "f2",
-      "k": 0,
-      "label": "Team & advisors",
-      "pos": "down"
-     },
-     {
-      "id": "f3",
-      "k": 0,
-      "label": "Ecosystem",
-      "pos": "down"
-     },
-     {
-      "id": "f4",
-      "k": 0,
-      "label": "Treasury",
-      "pos": "down"
-     },
-     {
-      "id": "f5",
-      "k": 0,
-      "label": "Early backers",
-      "pos": "up"
-     },
-     {
-      "id": "ringc",
-      "k": 0,
-      "label": "TRCR",
-      "pos": "mid"
-     },
-     {
-      "id": "f1",
-      "k": 3,
-      "label": "Foundation",
-      "pos": "up"
-     },
-     {
-      "id": "f2",
-      "k": 3,
-      "label": "Team & advisors",
-      "pos": "down"
-     },
-     {
-      "id": "f3",
-      "k": 3,
-      "label": "Ecosystem",
-      "pos": "down"
-     },
-     {
-      "id": "f4",
-      "k": 3,
-      "label": "Treasury",
-      "pos": "down"
-     },
-     {
-      "id": "f5",
-      "k": 3,
-      "label": "Early backers",
-      "pos": "up"
-     },
-     {
-      "id": "ringc",
-      "k": 3,
-      "label": "TRCR",
-      "pos": "mid"
-     }
-    ],
+    "tags": [],
     "art": []
    },
    "governance": {
@@ -1034,23 +1010,48 @@
     "sections": [
      {
       "id": "top",
-      "kind": "hero",
+      "kind": "timelock",
       "tone": "blue",
-      "stage": "right",
+      "stage": "none",
       "full": true,
+      "h1": true,
       "eyebrow": "Governance",
-      "title": "Tracer is run by its holders.",
+      "title": "Hold. Delegate. Vote. _Wait._ Execute.",
       "lede": [
        "TRCR holders steer the Carrot protocol through an on-chain Governor and Timelock. No admin keys, no back door: if it changes, it was voted."
       ],
-      "ctas": [
+      "items": [
        {
-        "label": "How to take part",
-        "href": "#how"
+        "title": "Hold TRCR",
+        "body": "On Base, in your own wallet."
        },
        {
+        "title": "Delegate",
+        "body": "A one-time transaction. Delegate to yourself to vote yourself."
+       },
+       {
+        "title": "Vote or propose",
+        "body": "Vote on live proposals; above the threshold, make your own."
+       },
+       {
+        "title": "The Timelock executes",
+        "body": "Passed proposals queue, wait out the delay in public, then run."
+       }
+      ],
+      "dial": {
+       "label": "Timelock · example proposal",
+       "caption": "until it can run on-chain",
+       "secs": 101520,
+       "total": 172800
+      },
+      "ctas": [
+       {
         "label": "Get TRCR",
-        "href": "token",
+        "href": "token"
+       },
+       {
+        "label": "The parameters",
+        "href": "#params",
         "ghost": true
        }
       ]
@@ -1086,33 +1087,6 @@
        {
         "title": "Seed transfers",
         "body": "Whether pre-funding entitlements may change hands."
-       }
-      ]
-     },
-     {
-      "id": "how",
-      "kind": "steps",
-      "tone": "blue",
-      "stage": "right",
-      "full": true,
-      "eyebrow": "How to take part",
-      "title": "Four steps from holder to voter.",
-      "items": [
-       {
-        "title": "Hold TRCR",
-        "body": "On Base, in your own wallet."
-       },
-       {
-        "title": "Delegate",
-        "body": "A one-time transaction. Delegate to yourself to vote yourself."
-       },
-       {
-        "title": "Vote or propose",
-        "body": "Vote on live proposals; above the threshold, make your own."
-       },
-       {
-        "title": "The Timelock executes",
-        "body": "Passed proposals queue, wait out the delay, then run."
        }
       ]
      },
@@ -1168,56 +1142,7 @@
       "askTracy": true
      }
     ],
-    "tags": [
-     {
-      "id": "g1",
-      "k": 0,
-      "label": "Hold",
-      "pos": "up"
-     },
-     {
-      "id": "g2",
-      "k": 0,
-      "label": "Delegate",
-      "pos": "up"
-     },
-     {
-      "id": "g3",
-      "k": 0,
-      "label": "Vote",
-      "pos": "down"
-     },
-     {
-      "id": "g4",
-      "k": 0,
-      "label": "Execute",
-      "pos": "down"
-     },
-     {
-      "id": "g1",
-      "k": 2,
-      "label": "Hold",
-      "pos": "up"
-     },
-     {
-      "id": "g2",
-      "k": 2,
-      "label": "Delegate",
-      "pos": "up"
-     },
-     {
-      "id": "g3",
-      "k": 2,
-      "label": "Vote",
-      "pos": "down"
-     },
-     {
-      "id": "g4",
-      "k": 2,
-      "label": "Execute",
-      "pos": "down"
-     }
-    ],
+    "tags": [],
     "art": []
    },
    "base": {
@@ -1226,10 +1151,11 @@
     "sections": [
      {
       "id": "top",
-      "kind": "hero",
+      "kind": "dots",
       "tone": "blue",
-      "stage": "right",
+      "stage": "none",
       "full": true,
+      "glyph": "L2",
       "eyebrow": "How to Base",
       "title": "New to Base? Start here.",
       "lede": [
@@ -1321,7 +1247,7 @@
       "id": "safety",
       "kind": "prose",
       "tone": "blue",
-      "stage": "right",
+      "stage": "none",
       "full": true,
       "eyebrow": "Stay safe",
       "title": "Four rules that save wallets.",
@@ -1349,18 +1275,7 @@
       "askTracy": true
      }
     ],
-    "tags": [
-     {
-      "id": "chain",
-      "k": 0,
-      "label": "Base · Ethereum L2"
-     },
-     {
-      "id": "chain",
-      "k": 2,
-      "label": "Your wallet, on Base"
-     }
-    ],
+    "tags": [],
     "art": []
    },
    "ecosystem": {
@@ -1369,23 +1284,46 @@
     "sections": [
      {
       "id": "top",
-      "kind": "hero",
+      "kind": "portal",
       "tone": "blue",
-      "stage": "right",
+      "stage": "none",
       "full": true,
+      "h1": true,
       "eyebrow": "Ecosystem",
       "title": "One protocol. Real carbon. Many ways in.",
       "lede": [
        "Tracer governs the Carrot protocol. The carbon side of the project, from news to the marketplace, lives on Carbon Pioneers."
       ],
+      "items": [
+       {
+        "title": "Mangroves",
+        "img": "photos/mangrove-portal.webp",
+        "body": "Coastal forests lock carbon into their roots and the mud beneath them.",
+        "credit": "Photo: Priyaflorenceshah, [CC BY-SA 4.0](https://commons.wikimedia.org/wiki/File:Mangrove_forests_of_Mumbai.jpg)"
+       },
+       {
+        "title": "Reforestation",
+        "img": "photos/forest-portal.webp",
+        "body": "Trees planted on cleared land draw carbon down as they grow.",
+        "credit": "Photo: Sidoine Mbogni, [CC BY-SA 4.0](https://commons.wikimedia.org/wiki/File:Vue_a%C3%A9rienne_de_la_for%C3%AAt_tropicale_%C3%A0_Bodiman,_Yabassi,_Cameroun.jpg)"
+       },
+       {
+        "title": "Enhanced weathering",
+        "img": "photos/basalt-portal.webp",
+        "body": "Crushed basalt spread on fields binds CO₂ into stable minerals as it weathers.",
+        "credit": "Photo: Andy Waddington, [CC BY-SA 2.0](https://commons.wikimedia.org/wiki/File:Basalt_columns,_west_coast_of_Kerrera_-_geograph.org.uk_-_1754060.jpg)"
+       },
+       {
+        "title": "Biochar",
+        "img": "photos/biochar-portal.webp",
+        "body": "Plant waste heated without oxygen becomes a stable char that holds carbon in soil for centuries.",
+        "credit": "Photo: Tim Brunauer / GIZ, [CC BY-SA 4.0](https://commons.wikimedia.org/wiki/File:Charged_and_inoculated_biochar_ready_for_soil_application.jpg)"
+       }
+      ],
       "ctas": [
        {
         "label": "Where to go",
-        "href": "#gateways"
-       },
-       {
-        "label": "How it works",
-        "href": "#how",
+        "href": "#gateways",
         "ghost": true
        }
       ]
@@ -1406,7 +1344,7 @@
       "id": "how",
       "kind": "steps",
       "tone": "paper",
-      "stage": "right",
+      "stage": "none",
       "full": true,
       "eyebrow": "How it works",
       "title": "Five parts, one market.",
@@ -1437,7 +1375,7 @@
       "id": "gateways",
       "kind": "cards",
       "tone": "paper",
-      "stage": "right",
+      "stage": "none",
       "full": true,
       "eyebrow": "Where to go",
       "title": "Pick your way in.",
@@ -1482,92 +1420,7 @@
       "askTracy": true
      }
     ],
-    "tags": [
-     {
-      "id": "e1",
-      "k": 0,
-      "label": "Marketplace",
-      "pos": "up"
-     },
-     {
-      "id": "e2",
-      "k": 0,
-      "label": "Impact Scan",
-      "pos": "up"
-     },
-     {
-      "id": "e3",
-      "k": 0,
-      "label": "Academy",
-      "pos": "down"
-     },
-     {
-      "id": "e4",
-      "k": 0,
-      "label": "News",
-      "pos": "down"
-     },
-     {
-      "id": "hub",
-      "k": 0,
-      "label": "Carrot",
-      "pos": "mid"
-     },
-     {
-      "id": "s1",
-      "k": 2,
-      "label": "01 Project",
-      "pos": "up"
-     },
-     {
-      "id": "s2",
-      "k": 2,
-      "label": "02 CRRT",
-      "pos": "up"
-     },
-     {
-      "id": "s3",
-      "k": 2,
-      "label": "03 Market",
-      "pos": "up"
-     },
-     {
-      "id": "s4",
-      "k": 2,
-      "label": "04 Rabbit",
-      "pos": "down"
-     },
-     {
-      "id": "e1",
-      "k": 3,
-      "label": "Marketplace",
-      "pos": "up"
-     },
-     {
-      "id": "e2",
-      "k": 3,
-      "label": "Impact Scan",
-      "pos": "up"
-     },
-     {
-      "id": "e3",
-      "k": 3,
-      "label": "Academy",
-      "pos": "down"
-     },
-     {
-      "id": "e4",
-      "k": 3,
-      "label": "News",
-      "pos": "down"
-     },
-     {
-      "id": "hub",
-      "k": 3,
-      "label": "Carrot",
-      "pos": "mid"
-     }
-    ],
+    "tags": [],
     "art": []
    },
    "roadmap": {
@@ -1576,14 +1429,21 @@
     "sections": [
      {
       "id": "top",
-      "kind": "hero",
+      "kind": "dots",
       "tone": "blue",
-      "stage": "right",
+      "stage": "none",
       "full": true,
+      "glyph": "→",
       "eyebrow": "Roadmap",
       "title": "Where Tracer is heading.",
       "lede": [
-       "The solid line is done. The faint line is next. Dates are added as they are fixed."
+       "What is done, what is happening now and what comes next. Dates are added as they are fixed."
+      ],
+      "ctas": [
+       {
+        "label": "See the milestones",
+        "href": "#plan"
+       }
       ]
      },
      {
@@ -1645,48 +1505,7 @@
       ]
      }
     ],
-    "tags": [
-     {
-      "id": "m1",
-      "k": 0,
-      "label": "Testnet"
-     },
-     {
-      "id": "m2",
-      "k": 0,
-      "label": "Website"
-     },
-     {
-      "id": "m3",
-      "k": 0,
-      "label": "Airdrop"
-     },
-     {
-      "id": "m4",
-      "k": 0,
-      "label": "QuickSwap"
-     },
-     {
-      "id": "m5",
-      "k": 0,
-      "label": "Mainnet"
-     },
-     {
-      "id": "m6",
-      "k": 0,
-      "label": "Marketplace"
-     },
-     {
-      "id": "m7",
-      "k": 0,
-      "label": "Impact Scan"
-     },
-     {
-      "id": "m8",
-      "k": 0,
-      "label": "Academy"
-     }
-    ],
+    "tags": [],
     "art": []
    },
    "about": {
@@ -1695,10 +1514,11 @@
     "sections": [
      {
       "id": "top",
-      "kind": "hero",
+      "kind": "dots",
       "tone": "blue",
-      "stage": "right",
+      "stage": "none",
       "full": true,
+      "img": "mark-blue.svg",
       "eyebrow": "About",
       "title": "Built to make carbon removal traceable.",
       "lede": [
@@ -1770,10 +1590,11 @@
     "sections": [
      {
       "id": "top",
-      "kind": "hero",
+      "kind": "dots",
       "tone": "blue",
-      "stage": "right",
-      "full": true,
+      "stage": "none",
+      "compact": true,
+      "glyph": "?",
       "eyebrow": "FAQ",
       "title": "Questions, answered.",
       "lede": [
@@ -1800,10 +1621,11 @@
     "sections": [
      {
       "id": "top",
-      "kind": "hero",
+      "kind": "dots",
       "tone": "blue",
-      "stage": "right",
-      "full": true,
+      "stage": "none",
+      "compact": true,
+      "glyph": "@",
       "eyebrow": "Contact",
       "title": "Talk to the team.",
       "lede": [
@@ -1851,10 +1673,11 @@
     "sections": [
      {
       "id": "top",
-      "kind": "hero",
+      "kind": "dots",
       "tone": "blue",
-      "stage": "right",
-      "full": true,
+      "stage": "none",
+      "compact": true,
+      "glyph": "§",
       "eyebrow": "Legal",
       "title": "Impressum."
      },
@@ -1892,10 +1715,11 @@
     "sections": [
      {
       "id": "top",
-      "kind": "hero",
+      "kind": "dots",
       "tone": "blue",
-      "stage": "right",
-      "full": true,
+      "stage": "none",
+      "compact": true,
+      "glyph": "§",
       "eyebrow": "Legal",
       "title": "Privacy."
      },
@@ -1938,10 +1762,11 @@
     "sections": [
      {
       "id": "top",
-      "kind": "hero",
+      "kind": "dots",
       "tone": "blue",
-      "stage": "right",
-      "full": true,
+      "stage": "none",
+      "compact": true,
+      "glyph": "§",
       "eyebrow": "Legal",
       "title": "Risk disclaimer."
      },
@@ -2192,49 +2017,25 @@
    },
    "token": {
     "shapes": [
-     "ring",
-     "wave",
-     "mark",
-     "ring",
-     "wave"
+     "mark"
     ],
     "keys": [
      {
       "at": "#top",
       "set": {
-       "line.x": 0.5,
-       "line.y": 0,
-       "line.s": 1.0,
-       "line.alpha": 1,
-       "pulse.amt": 0.8,
-       "line.ry": -0.16,
-       "line.rx": 0.06,
+       "line.alpha": 0,
+       "pulse.amt": 0,
        "line.shape": 0,
        "tone": 0
-      },
-      "narrow": {
-       "line.x": 0,
-       "line.y": 0.46,
-       "line.s": 0.556,
-       "line.ry": -0.064,
-       "line.rx": 0
       }
      },
      {
       "at": "#contract",
       "set": {
-       "line.x": 0,
-       "line.y": -0.82,
-       "line.s": 1,
-       "line.alpha": 0.45,
-       "pulse.amt": 0.35,
-       "line.ry": 0,
-       "line.rx": 0,
-       "line.shape": 1,
+       "line.alpha": 0,
+       "pulse.amt": 0,
+       "line.shape": 0,
        "tone": 1
-      },
-      "narrow": {
-       "line.y": -0.9
       },
       "shift": "-18vh",
       "hold": 0.45
@@ -2242,18 +2043,10 @@
      {
       "at": "#buy",
       "set": {
-       "line.x": 0,
-       "line.y": -0.82,
-       "line.s": 1,
-       "line.alpha": 0.45,
-       "pulse.amt": 0.35,
-       "line.ry": 0,
-       "line.rx": 0,
-       "line.shape": 1,
+       "line.alpha": 0,
+       "pulse.amt": 0,
+       "line.shape": 0,
        "tone": 1
-      },
-      "narrow": {
-       "line.y": -0.9
       },
       "shift": "-18vh",
       "hold": 0.45
@@ -2261,22 +2054,10 @@
      {
       "at": "#airdrop",
       "set": {
-       "line.x": 0.5,
-       "line.y": 0,
-       "line.s": 1.0,
-       "line.alpha": 1,
-       "pulse.amt": 0.8,
-       "line.ry": -0.16,
-       "line.rx": 0.06,
-       "line.shape": 2,
+       "line.alpha": 0,
+       "pulse.amt": 0,
+       "line.shape": 0,
        "tone": 0
-      },
-      "narrow": {
-       "line.x": 0,
-       "line.y": 0.46,
-       "line.s": 0.667,
-       "line.ry": -0.064,
-       "line.rx": 0
       },
       "shift": "-18vh",
       "hold": 0.45
@@ -2284,22 +2065,10 @@
      {
       "at": "#distribution",
       "set": {
-       "line.x": 0.5,
-       "line.y": 0,
-       "line.s": 1.0,
-       "line.alpha": 1,
-       "pulse.amt": 0.8,
-       "line.ry": 0.16,
-       "line.rx": 0.06,
-       "line.shape": 3,
+       "line.alpha": 0,
+       "pulse.amt": 0,
+       "line.shape": 0,
        "tone": 1
-      },
-      "narrow": {
-       "line.x": 0,
-       "line.y": 0.46,
-       "line.s": 0.556,
-       "line.ry": 0.064,
-       "line.rx": 0
       },
       "shift": "-18vh",
       "hold": 0.45
@@ -2307,18 +2076,10 @@
      {
       "at": "#faq",
       "set": {
-       "line.x": 0,
-       "line.y": -0.82,
-       "line.s": 1,
-       "line.alpha": 0.45,
-       "pulse.amt": 0.35,
-       "line.ry": 0,
-       "line.rx": 0,
-       "line.shape": 4,
+       "line.alpha": 0,
+       "pulse.amt": 0,
+       "line.shape": 0,
        "tone": 1
-      },
-      "narrow": {
-       "line.y": -0.9
       },
       "shift": "-18vh",
       "hold": 0.45
@@ -2328,90 +2089,33 @@
       "shift": "-60vh",
       "hold": 0.2,
       "set": {
-       "line.x": 0,
-       "line.y": -0.82,
-       "line.s": 1,
-       "line.alpha": 0.18,
-       "pulse.amt": 0.3,
-       "line.ry": 0,
-       "line.rx": 0,
-       "line.shape": 4,
+       "line.alpha": 0,
        "tone": 0
-      },
-      "narrow": {
-       "line.y": -0.9,
-       "line.alpha": 0.08
       }
      }
     ]
    },
    "governance": {
     "shapes": [
-     "loop",
-     "wave",
-     "loop",
-     "wave"
+     "mark"
     ],
     "keys": [
      {
       "at": "#top",
       "set": {
-       "line.x": 0.5,
-       "line.y": 0,
-       "line.s": 0.884,
-       "line.alpha": 1,
-       "pulse.amt": 0.8,
-       "line.ry": -0.16,
-       "line.rx": 0.06,
+       "line.alpha": 0,
+       "pulse.amt": 0,
        "line.shape": 0,
        "tone": 0
-      },
-      "narrow": {
-       "line.x": 0,
-       "line.y": 0.46,
-       "line.s": 0.488,
-       "line.ry": -0.064,
-       "line.rx": 0
       }
      },
      {
       "at": "#decides",
       "set": {
-       "line.x": 0,
-       "line.y": -0.82,
-       "line.s": 1,
-       "line.alpha": 0.45,
-       "pulse.amt": 0.35,
-       "line.ry": 0,
-       "line.rx": 0,
-       "line.shape": 1,
+       "line.alpha": 0,
+       "pulse.amt": 0,
+       "line.shape": 0,
        "tone": 1
-      },
-      "narrow": {
-       "line.y": -0.9
-      },
-      "shift": "-18vh",
-      "hold": 0.45
-     },
-     {
-      "at": "#how",
-      "set": {
-       "line.x": 0.5,
-       "line.y": 0,
-       "line.s": 0.884,
-       "line.alpha": 1,
-       "pulse.amt": 0.8,
-       "line.ry": -0.16,
-       "line.rx": 0.06,
-       "line.shape": 2,
-       "tone": 0
-      },
-      "narrow": {
-       "line.x": 0,
-       "line.y": 0.46,
-       "line.s": 0.488,
-       "line.ry": -0.064,
-       "line.rx": 0
       },
       "shift": "-18vh",
       "hold": 0.45
@@ -2419,18 +2123,10 @@
      {
       "at": "#params",
       "set": {
-       "line.x": 0,
-       "line.y": -0.82,
-       "line.s": 1,
-       "line.alpha": 0.45,
-       "pulse.amt": 0.35,
-       "line.ry": 0,
-       "line.rx": 0,
-       "line.shape": 3,
+       "line.alpha": 0,
+       "pulse.amt": 0,
+       "line.shape": 0,
        "tone": 1
-      },
-      "narrow": {
-       "line.y": -0.9
       },
       "shift": "-18vh",
       "hold": 0.45
@@ -2438,18 +2134,10 @@
      {
       "at": "#faq",
       "set": {
-       "line.x": 0,
-       "line.y": -0.82,
-       "line.s": 1,
-       "line.alpha": 0.45,
-       "pulse.amt": 0.35,
-       "line.ry": 0,
-       "line.rx": 0,
-       "line.shape": 3,
+       "line.alpha": 0,
+       "pulse.amt": 0,
+       "line.shape": 0,
        "tone": 1
-      },
-      "narrow": {
-       "line.y": -0.9
       },
       "shift": "-18vh",
       "hold": 0.45
@@ -2459,73 +2147,33 @@
       "shift": "-60vh",
       "hold": 0.2,
       "set": {
-       "line.x": 0,
-       "line.y": -0.82,
-       "line.s": 1,
-       "line.alpha": 0.18,
-       "pulse.amt": 0.3,
-       "line.ry": 0,
-       "line.rx": 0,
-       "line.shape": 3,
+       "line.alpha": 0,
        "tone": 0
-      },
-      "narrow": {
-       "line.y": -0.9,
-       "line.alpha": 0.08
       }
      }
     ]
    },
    "base": {
     "shapes": [
-     {
-      "kind": "blocks",
-      "n": 5
-     },
-     "wave",
-     {
-      "kind": "blocks",
-      "n": 5
-     },
-     "wave"
+     "mark"
     ],
     "keys": [
      {
       "at": "#top",
       "set": {
-       "line.x": 0.5,
-       "line.y": 0,
-       "line.s": 0.809,
-       "line.alpha": 1,
-       "pulse.amt": 0.8,
-       "line.ry": -0.16,
-       "line.rx": 0.06,
+       "line.alpha": 0,
+       "pulse.amt": 0,
        "line.shape": 0,
        "tone": 0
-      },
-      "narrow": {
-       "line.x": 0,
-       "line.y": 0.46,
-       "line.s": 0.447,
-       "line.ry": -0.064,
-       "line.rx": 0
       }
      },
      {
       "at": "#why",
       "set": {
-       "line.x": 0,
-       "line.y": -0.82,
-       "line.s": 1,
-       "line.alpha": 0.45,
-       "pulse.amt": 0.35,
-       "line.ry": 0,
-       "line.rx": 0,
-       "line.shape": 1,
+       "line.alpha": 0,
+       "pulse.amt": 0,
+       "line.shape": 0,
        "tone": 1
-      },
-      "narrow": {
-       "line.y": -0.9
       },
       "shift": "-18vh",
       "hold": 0.45
@@ -2533,18 +2181,10 @@
      {
       "at": "#steps",
       "set": {
-       "line.x": 0,
-       "line.y": -0.82,
-       "line.s": 1,
-       "line.alpha": 0.45,
-       "pulse.amt": 0.35,
-       "line.ry": 0,
-       "line.rx": 0,
-       "line.shape": 1,
+       "line.alpha": 0,
+       "pulse.amt": 0,
+       "line.shape": 0,
        "tone": 1
-      },
-      "narrow": {
-       "line.y": -0.9
       },
       "shift": "-18vh",
       "hold": 0.45
@@ -2552,22 +2192,10 @@
      {
       "at": "#safety",
       "set": {
-       "line.x": 0.5,
-       "line.y": 0,
-       "line.s": 0.809,
-       "line.alpha": 1,
-       "pulse.amt": 0.8,
-       "line.ry": -0.16,
-       "line.rx": 0.06,
-       "line.shape": 2,
+       "line.alpha": 0,
+       "pulse.amt": 0,
+       "line.shape": 0,
        "tone": 0
-      },
-      "narrow": {
-       "line.x": 0,
-       "line.y": 0.46,
-       "line.s": 0.447,
-       "line.ry": -0.064,
-       "line.rx": 0
       },
       "shift": "-18vh",
       "hold": 0.45
@@ -2575,18 +2203,10 @@
      {
       "at": "#faq",
       "set": {
-       "line.x": 0,
-       "line.y": -0.82,
-       "line.s": 1,
-       "line.alpha": 0.45,
-       "pulse.amt": 0.35,
-       "line.ry": 0,
-       "line.rx": 0,
-       "line.shape": 3,
+       "line.alpha": 0,
+       "pulse.amt": 0,
+       "line.shape": 0,
        "tone": 1
-      },
-      "narrow": {
-       "line.y": -0.9
       },
       "shift": "-18vh",
       "hold": 0.45
@@ -2596,68 +2216,33 @@
       "shift": "-60vh",
       "hold": 0.2,
       "set": {
-       "line.x": 0,
-       "line.y": -0.82,
-       "line.s": 1,
-       "line.alpha": 0.18,
-       "pulse.amt": 0.3,
-       "line.ry": 0,
-       "line.rx": 0,
-       "line.shape": 3,
+       "line.alpha": 0,
        "tone": 0
-      },
-      "narrow": {
-       "line.y": -0.9,
-       "line.alpha": 0.08
       }
      }
     ]
    },
    "ecosystem": {
     "shapes": [
-     "hub",
-     "wave",
-     "route",
-     "hub",
-     "wave"
+     "mark"
     ],
     "keys": [
      {
       "at": "#top",
       "set": {
-       "line.x": 0.5,
-       "line.y": 0,
-       "line.s": 0.844,
-       "line.alpha": 1,
-       "pulse.amt": 0.8,
-       "line.ry": -0.16,
-       "line.rx": 0.06,
+       "line.alpha": 0,
+       "pulse.amt": 0,
        "line.shape": 0,
        "tone": 0
-      },
-      "narrow": {
-       "line.x": 0,
-       "line.y": 0.46,
-       "line.s": 0.467,
-       "line.ry": -0.064,
-       "line.rx": 0
       }
      },
      {
       "at": "#why",
       "set": {
-       "line.x": 0,
-       "line.y": -0.82,
-       "line.s": 1,
-       "line.alpha": 0.45,
-       "pulse.amt": 0.35,
-       "line.ry": 0,
-       "line.rx": 0,
-       "line.shape": 1,
+       "line.alpha": 0,
+       "pulse.amt": 0,
+       "line.shape": 0,
        "tone": 1
-      },
-      "narrow": {
-       "line.y": -0.9
       },
       "shift": "-18vh",
       "hold": 0.45
@@ -2665,22 +2250,10 @@
      {
       "at": "#how",
       "set": {
-       "line.x": 0.5,
-       "line.y": 0,
-       "line.s": 0.623,
-       "line.alpha": 1,
-       "pulse.amt": 0.8,
-       "line.ry": -0.16,
-       "line.rx": 0.06,
-       "line.shape": 2,
+       "line.alpha": 0,
+       "pulse.amt": 0,
+       "line.shape": 0,
        "tone": 1
-      },
-      "narrow": {
-       "line.x": 0,
-       "line.y": 0.46,
-       "line.s": 0.344,
-       "line.ry": -0.064,
-       "line.rx": 0
       },
       "shift": "-18vh",
       "hold": 0.45
@@ -2688,22 +2261,10 @@
      {
       "at": "#gateways",
       "set": {
-       "line.x": 0.5,
-       "line.y": 0,
-       "line.s": 0.844,
-       "line.alpha": 1,
-       "pulse.amt": 0.8,
-       "line.ry": 0.16,
-       "line.rx": 0.06,
-       "line.shape": 3,
+       "line.alpha": 0,
+       "pulse.amt": 0,
+       "line.shape": 0,
        "tone": 1
-      },
-      "narrow": {
-       "line.x": 0,
-       "line.y": 0.46,
-       "line.s": 0.467,
-       "line.ry": 0.064,
-       "line.rx": 0
       },
       "shift": "-18vh",
       "hold": 0.45
@@ -2711,18 +2272,10 @@
      {
       "at": "#faq",
       "set": {
-       "line.x": 0,
-       "line.y": -0.82,
-       "line.s": 1,
-       "line.alpha": 0.45,
-       "pulse.amt": 0.35,
-       "line.ry": 0,
-       "line.rx": 0,
-       "line.shape": 4,
+       "line.alpha": 0,
+       "pulse.amt": 0,
+       "line.shape": 0,
        "tone": 1
-      },
-      "narrow": {
-       "line.y": -0.9
       },
       "shift": "-18vh",
       "hold": 0.45
@@ -2732,79 +2285,33 @@
       "shift": "-60vh",
       "hold": 0.2,
       "set": {
-       "line.x": 0,
-       "line.y": -0.82,
-       "line.s": 1,
-       "line.alpha": 0.18,
-       "pulse.amt": 0.3,
-       "line.ry": 0,
-       "line.rx": 0,
-       "line.shape": 4,
+       "line.alpha": 0,
        "tone": 0
-      },
-      "narrow": {
-       "line.y": -0.9,
-       "line.alpha": 0.08
       }
      }
     ]
    },
    "roadmap": {
     "shapes": [
-     {
-      "kind": "timeline",
-      "ids": [
-       "m1",
-       "m2",
-       "m3",
-       "m4",
-       "m5",
-       "m6",
-       "m7",
-       "m8"
-      ],
-      "done": 2,
-      "vertical": true
-     },
-     "wave"
+     "mark"
     ],
     "keys": [
      {
       "at": "#top",
       "set": {
-       "line.x": 0.5,
-       "line.y": 0,
-       "line.s": 0.638,
-       "line.alpha": 1,
-       "pulse.amt": 0.8,
-       "line.ry": -0.16,
-       "line.rx": 0.06,
+       "line.alpha": 0,
+       "pulse.amt": 0,
        "line.shape": 0,
        "tone": 0
-      },
-      "narrow": {
-       "line.x": 0,
-       "line.y": 0.46,
-       "line.s": 0.345,
-       "line.ry": -0.064,
-       "line.rx": 0
       }
      },
      {
       "at": "#plan",
       "set": {
-       "line.x": 0,
-       "line.y": -0.82,
-       "line.s": 1,
-       "line.alpha": 0.45,
-       "pulse.amt": 0.35,
-       "line.ry": 0,
-       "line.rx": 0,
-       "line.shape": 1,
+       "line.alpha": 0,
+       "pulse.amt": 0,
+       "line.shape": 0,
        "tone": 1
-      },
-      "narrow": {
-       "line.y": -0.9
       },
       "shift": "-18vh",
       "hold": 0.45
@@ -2814,65 +2321,33 @@
       "shift": "-60vh",
       "hold": 0.2,
       "set": {
-       "line.x": 0,
-       "line.y": -0.82,
-       "line.s": 1,
-       "line.alpha": 0.18,
-       "pulse.amt": 0.3,
-       "line.ry": 0,
-       "line.rx": 0,
-       "line.shape": 1,
+       "line.alpha": 0,
        "tone": 0
-      },
-      "narrow": {
-       "line.y": -0.9,
-       "line.alpha": 0.08
       }
      }
     ]
    },
    "about": {
     "shapes": [
-     "mark",
-     "wave"
+     "mark"
     ],
     "keys": [
      {
       "at": "#top",
       "set": {
-       "line.x": 0.5,
-       "line.y": 0,
-       "line.s": 1.0,
-       "line.alpha": 1,
-       "pulse.amt": 0.8,
-       "line.ry": -0.16,
-       "line.rx": 0.06,
+       "line.alpha": 0,
+       "pulse.amt": 0,
        "line.shape": 0,
        "tone": 0
-      },
-      "narrow": {
-       "line.x": 0,
-       "line.y": 0.46,
-       "line.s": 0.667,
-       "line.ry": -0.064,
-       "line.rx": 0
       }
      },
      {
       "at": "#mission",
       "set": {
-       "line.x": 0,
-       "line.y": -0.82,
-       "line.s": 1,
-       "line.alpha": 0.45,
-       "pulse.amt": 0.35,
-       "line.ry": 0,
-       "line.rx": 0,
-       "line.shape": 1,
+       "line.alpha": 0,
+       "pulse.amt": 0,
+       "line.shape": 0,
        "tone": 1
-      },
-      "narrow": {
-       "line.y": -0.9
       },
       "shift": "-18vh",
       "hold": 0.45
@@ -2880,18 +2355,10 @@
      {
       "at": "#team",
       "set": {
-       "line.x": 0,
-       "line.y": -0.82,
-       "line.s": 1,
-       "line.alpha": 0.45,
-       "pulse.amt": 0.35,
-       "line.ry": 0,
-       "line.rx": 0,
-       "line.shape": 1,
+       "line.alpha": 0,
+       "pulse.amt": 0,
+       "line.shape": 0,
        "tone": 1
-      },
-      "narrow": {
-       "line.y": -0.9
       },
       "shift": "-18vh",
       "hold": 0.45
@@ -2901,65 +2368,33 @@
       "shift": "-60vh",
       "hold": 0.2,
       "set": {
-       "line.x": 0,
-       "line.y": -0.82,
-       "line.s": 1,
-       "line.alpha": 0.18,
-       "pulse.amt": 0.3,
-       "line.ry": 0,
-       "line.rx": 0,
-       "line.shape": 1,
+       "line.alpha": 0,
        "tone": 0
-      },
-      "narrow": {
-       "line.y": -0.9,
-       "line.alpha": 0.08
       }
      }
     ]
    },
    "faq": {
     "shapes": [
-     "mark",
-     "wave"
+     "mark"
     ],
     "keys": [
      {
       "at": "#top",
       "set": {
-       "line.x": 0.5,
-       "line.y": 0,
-       "line.s": 1.0,
-       "line.alpha": 1,
-       "pulse.amt": 0.8,
-       "line.ry": -0.16,
-       "line.rx": 0.06,
+       "line.alpha": 0,
+       "pulse.amt": 0,
        "line.shape": 0,
        "tone": 0
-      },
-      "narrow": {
-       "line.x": 0,
-       "line.y": 0.46,
-       "line.s": 0.667,
-       "line.ry": -0.064,
-       "line.rx": 0
       }
      },
      {
       "at": "#all",
       "set": {
-       "line.x": 0,
-       "line.y": -0.82,
-       "line.s": 1,
-       "line.alpha": 0.45,
-       "pulse.amt": 0.35,
-       "line.ry": 0,
-       "line.rx": 0,
-       "line.shape": 1,
+       "line.alpha": 0,
+       "pulse.amt": 0,
+       "line.shape": 0,
        "tone": 1
-      },
-      "narrow": {
-       "line.y": -0.9
       },
       "shift": "-18vh",
       "hold": 0.45
@@ -2969,65 +2404,33 @@
       "shift": "-60vh",
       "hold": 0.2,
       "set": {
-       "line.x": 0,
-       "line.y": -0.82,
-       "line.s": 1,
-       "line.alpha": 0.18,
-       "pulse.amt": 0.3,
-       "line.ry": 0,
-       "line.rx": 0,
-       "line.shape": 1,
+       "line.alpha": 0,
        "tone": 0
-      },
-      "narrow": {
-       "line.y": -0.9,
-       "line.alpha": 0.08
       }
      }
     ]
    },
    "contact": {
     "shapes": [
-     "mark",
-     "wave"
+     "mark"
     ],
     "keys": [
      {
       "at": "#top",
       "set": {
-       "line.x": 0.5,
-       "line.y": 0,
-       "line.s": 1.0,
-       "line.alpha": 1,
-       "pulse.amt": 0.8,
-       "line.ry": -0.16,
-       "line.rx": 0.06,
+       "line.alpha": 0,
+       "pulse.amt": 0,
        "line.shape": 0,
        "tone": 0
-      },
-      "narrow": {
-       "line.x": 0,
-       "line.y": 0.46,
-       "line.s": 0.667,
-       "line.ry": -0.064,
-       "line.rx": 0
       }
      },
      {
       "at": "#form",
       "set": {
-       "line.x": 0,
-       "line.y": -0.82,
-       "line.s": 1,
-       "line.alpha": 0.45,
-       "pulse.amt": 0.35,
-       "line.ry": 0,
-       "line.rx": 0,
-       "line.shape": 1,
+       "line.alpha": 0,
+       "pulse.amt": 0,
+       "line.shape": 0,
        "tone": 1
-      },
-      "narrow": {
-       "line.y": -0.9
       },
       "shift": "-18vh",
       "hold": 0.45
@@ -3037,65 +2440,33 @@
       "shift": "-60vh",
       "hold": 0.2,
       "set": {
-       "line.x": 0,
-       "line.y": -0.82,
-       "line.s": 1,
-       "line.alpha": 0.18,
-       "pulse.amt": 0.3,
-       "line.ry": 0,
-       "line.rx": 0,
-       "line.shape": 1,
+       "line.alpha": 0,
        "tone": 0
-      },
-      "narrow": {
-       "line.y": -0.9,
-       "line.alpha": 0.08
       }
      }
     ]
    },
    "impressum": {
     "shapes": [
-     "mark",
-     "wave"
+     "mark"
     ],
     "keys": [
      {
       "at": "#top",
       "set": {
-       "line.x": 0.5,
-       "line.y": 0,
-       "line.s": 1.0,
-       "line.alpha": 1,
-       "pulse.amt": 0.8,
-       "line.ry": -0.16,
-       "line.rx": 0.06,
+       "line.alpha": 0,
+       "pulse.amt": 0,
        "line.shape": 0,
        "tone": 0
-      },
-      "narrow": {
-       "line.x": 0,
-       "line.y": 0.46,
-       "line.s": 0.667,
-       "line.ry": -0.064,
-       "line.rx": 0
       }
      },
      {
       "at": "#text",
       "set": {
-       "line.x": 0,
-       "line.y": -0.82,
-       "line.s": 1,
-       "line.alpha": 0.45,
-       "pulse.amt": 0.35,
-       "line.ry": 0,
-       "line.rx": 0,
-       "line.shape": 1,
+       "line.alpha": 0,
+       "pulse.amt": 0,
+       "line.shape": 0,
        "tone": 1
-      },
-      "narrow": {
-       "line.y": -0.9
       },
       "shift": "-18vh",
       "hold": 0.45
@@ -3105,65 +2476,33 @@
       "shift": "-60vh",
       "hold": 0.2,
       "set": {
-       "line.x": 0,
-       "line.y": -0.82,
-       "line.s": 1,
-       "line.alpha": 0.18,
-       "pulse.amt": 0.3,
-       "line.ry": 0,
-       "line.rx": 0,
-       "line.shape": 1,
+       "line.alpha": 0,
        "tone": 0
-      },
-      "narrow": {
-       "line.y": -0.9,
-       "line.alpha": 0.08
       }
      }
     ]
    },
    "privacy": {
     "shapes": [
-     "mark",
-     "wave"
+     "mark"
     ],
     "keys": [
      {
       "at": "#top",
       "set": {
-       "line.x": 0.5,
-       "line.y": 0,
-       "line.s": 1.0,
-       "line.alpha": 1,
-       "pulse.amt": 0.8,
-       "line.ry": -0.16,
-       "line.rx": 0.06,
+       "line.alpha": 0,
+       "pulse.amt": 0,
        "line.shape": 0,
        "tone": 0
-      },
-      "narrow": {
-       "line.x": 0,
-       "line.y": 0.46,
-       "line.s": 0.667,
-       "line.ry": -0.064,
-       "line.rx": 0
       }
      },
      {
       "at": "#text",
       "set": {
-       "line.x": 0,
-       "line.y": -0.82,
-       "line.s": 1,
-       "line.alpha": 0.45,
-       "pulse.amt": 0.35,
-       "line.ry": 0,
-       "line.rx": 0,
-       "line.shape": 1,
+       "line.alpha": 0,
+       "pulse.amt": 0,
+       "line.shape": 0,
        "tone": 1
-      },
-      "narrow": {
-       "line.y": -0.9
       },
       "shift": "-18vh",
       "hold": 0.45
@@ -3173,65 +2512,33 @@
       "shift": "-60vh",
       "hold": 0.2,
       "set": {
-       "line.x": 0,
-       "line.y": -0.82,
-       "line.s": 1,
-       "line.alpha": 0.18,
-       "pulse.amt": 0.3,
-       "line.ry": 0,
-       "line.rx": 0,
-       "line.shape": 1,
+       "line.alpha": 0,
        "tone": 0
-      },
-      "narrow": {
-       "line.y": -0.9,
-       "line.alpha": 0.08
       }
      }
     ]
    },
    "disclaimer": {
     "shapes": [
-     "mark",
-     "wave"
+     "mark"
     ],
     "keys": [
      {
       "at": "#top",
       "set": {
-       "line.x": 0.5,
-       "line.y": 0,
-       "line.s": 1.0,
-       "line.alpha": 1,
-       "pulse.amt": 0.8,
-       "line.ry": -0.16,
-       "line.rx": 0.06,
+       "line.alpha": 0,
+       "pulse.amt": 0,
        "line.shape": 0,
        "tone": 0
-      },
-      "narrow": {
-       "line.x": 0,
-       "line.y": 0.46,
-       "line.s": 0.667,
-       "line.ry": -0.064,
-       "line.rx": 0
       }
      },
      {
       "at": "#text",
       "set": {
-       "line.x": 0,
-       "line.y": -0.82,
-       "line.s": 1,
-       "line.alpha": 0.45,
-       "pulse.amt": 0.35,
-       "line.ry": 0,
-       "line.rx": 0,
-       "line.shape": 1,
+       "line.alpha": 0,
+       "pulse.amt": 0,
+       "line.shape": 0,
        "tone": 1
-      },
-      "narrow": {
-       "line.y": -0.9
       },
       "shift": "-18vh",
       "hold": 0.45
@@ -3241,19 +2548,8 @@
       "shift": "-60vh",
       "hold": 0.2,
       "set": {
-       "line.x": 0,
-       "line.y": -0.82,
-       "line.s": 1,
-       "line.alpha": 0.18,
-       "pulse.amt": 0.3,
-       "line.ry": 0,
-       "line.rx": 0,
-       "line.shape": 1,
+       "line.alpha": 0,
        "tone": 0
-      },
-      "narrow": {
-       "line.y": -0.9,
-       "line.alpha": 0.08
       }
      }
     ]
