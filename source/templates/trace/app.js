@@ -253,8 +253,8 @@ function portal() {
   // where each slot sits, from the stage's size: shown large left of centre, the next half off the right edge
   function layout(instant) {
     const W = stage.offsetWidth, H = stage.offsetHeight, D = cs[0].offsetWidth, narrow = W < 700;
-    const cx = narrow ? W / 2 : W * 0.44, cy = H / 2;
-    const slot = d => d === 0 ? [cx, cy, 1, 1] : d === 1 ? [narrow ? W + D * 0.12 : W + D * 0.04, cy + (narrow ? 0 : D * 0.12), narrow ? 0.42 : 0.5, 1]
+    const cx = narrow ? W / 2 : Math.max(W * 0.44, D / 2 + 20), cy = H / 2;   // as large as the screen allows, clear of the copy
+    const slot = d => d === 0 ? [cx, cy, 1, 1] : d === 1 ? [narrow ? W + D * 0.1 : W - D * 0.02, cy + (narrow ? 0 : D * 0.2), narrow ? 0.36 : 0.4, 1]
       : d === -1 ? [cx - D * 0.55, cy, 0.7, 0] : [W + D * 1.2, cy, 0.4, 1];
     cs.forEach((c, k) => {
       const d = off(k), [x, y, sc, o] = slot(d);
