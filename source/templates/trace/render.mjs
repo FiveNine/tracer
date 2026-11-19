@@ -59,7 +59,7 @@ const KINDS = {
     return `${s.stageBox ? '<div class="hero-stage" data-stage aria-hidden="true"></div>' : ''}${head(s, 'h1')}
       ${ctas(s.ctas, c)}
       ${s.chip ? contractChip(c, 'hero-chip') : ''}
-      ${s.trace ? `<button type="button" class="trace-btn" data-trace>${esc(s.trace)}</button>` : ''}`;
+`;
   },
   // a pinned chapter: a photo the line sweeps across, turning it into dots (scene/tokenize.js); the steps light up in turn
   tokenize(s, c) {
@@ -69,7 +69,6 @@ const KINDS = {
         <ol class="tok-steps">${s.items.map((it, i) => `<li data-tok-step${i ? '' : ' class="is-on"'}><span class="n">${String(i + 1).padStart(2, '0')}</span><div><b>${esc(it.title)}</b>${paras(it.body)}</div></li>`).join('')}</ol>
       </div>
       ${s.counter ? `<div class="tok-count" aria-hidden="true"><b data-tok-n>0</b><span>${esc(s.counter)}</span></div>` : ''}
-      ${s.credit ? `<p class="credit">${md(s.credit)}</p>` : ''}
     </div>`;
   },
   // the places as full round photos: one large, the next peeking in from the right edge. A ring round the large one
@@ -80,10 +79,8 @@ const KINDS = {
       <div class="pt-copy">${head(s, s.h1 ? 'h1' : 'h2')}
         <div class="pt-now" aria-live="polite"><span class="pt-n"><b data-pt-n>01</b><small> / ${String(n).padStart(2, '0')}</small></span>
           <b class="pt-t" data-pt-t>${esc(it[0].title)}</b><p data-pt-b>${md(it[0].body)}</p></div>
-  <div class="pt-strip">${it.map((x, i) => `<button type="button" data-pt-to="${i}" style="background-image:${img(i)}"${i ? '' : ' aria-current="true"'} aria-label="${esc(x.title)}"></button>`).join('')}
-        <button type="button" class="pt-pause" data-pt-pause aria-label="Pause the slideshow" aria-pressed="false"><i></i><i></i></button></div>
+  <div class="pt-strip">${it.map((x, i) => `<button type="button" data-pt-to="${i}" style="background-image:${img(i)}"${i ? '' : ' aria-current="true"'} aria-label="${esc(x.title)}"></button>`).join('')}</div>
         ${ctas(s.ctas, c)}${s.note ? `<p class="note">${md(s.note)}</p>` : ''}
-  <p class="credit" data-pt-credit>${md(it[0].credit || '')}</p>
       </div>
       <div class="pt-stage" data-pt-stage>
         ${it.map((x, i) => `<button type="button" class="pt-c" data-pt-c="${i}" tabindex="-1" aria-label="${esc(x.title)}"><span style="background-image:${img(i)}"></span></button>`).join('')}

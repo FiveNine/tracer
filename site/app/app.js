@@ -184,18 +184,6 @@ function touch() {
     if (u >= 0) { line.touch(u); field.ring(line.pointAt(u)); root.classList.add('touched'); }
   });
   document.querySelectorAll('[data-trace]').forEach(b => b.addEventListener('click', () => { line.touch(0); field.ring(line.pointAt(0)); }));
-  // a hint of the hand: the cursor says "Touch" near the line
-  const cur = document.querySelector('.cursor');
-  if (cur && app.input.fine) {
-    let near = false, t0 = 0;
-    app.add(t => {
-      if (t - t0 < 0.12) return; t0 = t;
-      const over = document.elementFromPoint(app.input.x, app.input.y);
-      const free = !over || !over.closest('a,button,input,textarea,select,summary,[data-tracy],header');
-      const n = free && line.nearest(app.input.x, app.input.y, 44) >= 0;
-      if (n !== near) { near = n; cur.classList.toggle('has-label', n); cur.classList.toggle('is-link', n); const l = cur.querySelector('span'); if (l) l.textContent = n ? 'Touch' : ''; }
-    }, 60);
-  }
 }
 
 /* ---------- page UI: menu, contract, wallet, FAQ, forms, Tracy ---------- */
@@ -239,13 +227,13 @@ function ui() {
 /* ---------- the places: full round photos that slide in from the right ---------- */
 // The section never adds scroll. One place is shown large, the next peeks in at the screen's right edge; a ring drawn
 // round the large one fills while it is shown, and when it closes the next slides in to take its place. Hover,
-// scrolling it away, a hidden tab or the pause button hold the ring; the peeking circle or a thumbnail go at once.
+// scrolling it away or a hidden tab hold the ring; the peeking circle or a thumbnail go at once.
 function portal() {
   const el = document.querySelector('[data-pt]'); if (!el) return;
   const items = JSON.parse(el.dataset.items), n = items.length;
   const stage = el.querySelector('[data-pt-stage]'), cs = [...el.querySelectorAll('[data-pt-c]')], ring = el.querySelector('[data-pt-ring]');
-  const fill = el.querySelector('[data-pt-fill]'), now = el.querySelector('.pt-now'), strip = [...el.querySelectorAll('[data-pt-to]')], pause = el.querySelector('[data-pt-pause]');
-  const T = { n: el.querySelector('[data-pt-n]'), t: el.querySelector('[data-pt-t]'), b: el.querySelector('[data-pt-b]'), credit: el.querySelector('[data-pt-credit]') };
+  const fill = el.querySelector('[data-pt-fill]'), now = el.querySelector('.pt-now'), strip = [...el.querySelectorAll('[data-pt-to]')];
+  const T = { n: el.querySelector('[data-pt-n]'), t: el.querySelector('[data-pt-t]'), b: el.querySelector('[data-pt-b]') };
   const md = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
   let i = 0, moving = false, hover = false, seen = false, paused = !!app.reduced;
   const off = k => { let d = ((k - i) % n + n) % n; return d === n - 1 ? -1 : d; };   // -1: just left, 0: shown, 1: peeking, 2+: waiting off screen
@@ -281,7 +269,7 @@ function portal() {
     layout(false);
     setTimeout(() => {
       const it = items[to];
-      T.n.textContent = String(to + 1).padStart(2, '0'); T.t.textContent = it.t; T.b.innerHTML = md(it.b); T.credit.innerHTML = md(it.credit || '');
+      T.n.textContent = String(to + 1).padStart(2, '0'); T.t.textContent = it.t; T.b.innerHTML = md(it.b);
       strip.forEach((b, k) => b.toggleAttribute('aria-current', k === to));
       now.classList.remove('is-out');
     }, app.reduced ? 0 : 450);
@@ -290,7 +278,6 @@ function portal() {
   fill.addEventListener('animationend', () => go((i + 1) % n));
   cs.forEach((c, k) => c.addEventListener('click', () => { if (off(k) === 1) go(k); }));
   strip.forEach((b, k) => b.addEventListener('click', () => go(k)));
-  pause.addEventListener('click', () => { paused = !paused; pause.setAttribute('aria-pressed', String(paused)); pause.setAttribute('aria-label', paused ? 'Play the slideshow' : 'Pause the slideshow'); held(); });
   stage.addEventListener('pointerover', e => { if (e.pointerType === 'mouse' && e.target.closest('.pt-c.is-on')) { hover = true; held(); } });
   stage.addEventListener('pointerout', e => { if (e.target.closest('.pt-c.is-on')) { hover = false; held(); } });
   new IntersectionObserver(([e]) => { seen = e.isIntersecting; held(); }, { threshold: 0.4 }).observe(el);

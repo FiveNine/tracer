@@ -479,7 +479,6 @@
        }
       ],
       "chip": true,
-      "trace": "Touch the line, or send a trace",
       "stageBox": true
      },
      {
@@ -510,8 +509,7 @@
         "body": "Send CRRT into a Rabbit and it is retired for good, with its beneficiary on record."
        }
       ],
-      "counter": "grams on-chain · 1,000,000 = one tonne",
-      "credit": "Photo: biochar, Tim Brunauer / GIZ, [CC BY-SA 4.0](https://commons.wikimedia.org/wiki/File:Charged_and_inoculated_biochar_ready_for_soil_application.jpg)"
+      "counter": "grams on-chain · 1,000,000 = one tonne"
      },
      {
       "id": "projects",

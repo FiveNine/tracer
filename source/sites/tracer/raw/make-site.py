@@ -140,7 +140,7 @@ pages['index'], xpages['index'] = page(
     shapes, [
         sec('hero', 'hero', 'blue', 'hero', 0, full=True, eyebrow='Real-world assets · Built on Base', title='Carbon removal, traced on-chain.',
             lede=['Tracer governs the Carrot protocol, where verified carbon removal becomes an on-chain asset on Base and is retired for good. **TRCR** is how you take part.'],
-            ctas=[{'label': 'Buy TRCR', 'href': '@buy'}, {'label': 'Read the token guide', 'href': 'token', 'ghost': True}], chip=True, trace='Touch the line, or send a trace', stageBox=True),
+            ctas=[{'label': 'Buy TRCR', 'href': '@buy'}, {'label': 'Read the token guide', 'href': 'token', 'ghost': True}], chip=True, stageBox=True),
         sec('rwa', 'tokenize', 'blue', 'sweep', 1, eyebrow='How the RWA works', title='The world, made on-chain.',
             lede=['Where the line passes, verified carbon removal becomes **CRRT**: an asset on Base you can hold, trade and retire. Every dot is a gram.'],
             items=[
@@ -148,8 +148,7 @@ pages['index'], xpages['index'] = page(
                 {'title': 'Issued as CRRT', 'body': 'Projects issue CRRT against endorsed removal. One slice is one gram; a million slices is a tonne.'},
                 {'title': 'Bought on the marketplace', 'body': 'Fixed-price listings in admitted stablecoins. No protocol fees.'},
                 {'title': 'Retired in a Rabbit', 'body': 'Send CRRT into a Rabbit and it is retired for good, with its beneficiary on record.'}],
-            counter='grams on-chain · 1,000,000 = one tonne',
-            credit='Photo: biochar, Tim Brunauer / GIZ, [CC BY-SA 4.0](https://commons.wikimedia.org/wiki/File:Charged_and_inoculated_biochar_ready_for_soil_application.jpg)'),
+            counter='grams on-chain · 1,000,000 = one tonne'),
         sec('projects', 'portal', 'blue', 'hidden', 1, full=True, eyebrow='Real-world assets', title='Every tonne has a place.',
             lede=['Each CRRT comes from a real removal project you can look into: where it is, who endorsed it, how much has been issued and how much is retired.'],
             items=PLACES,

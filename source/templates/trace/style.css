@@ -69,9 +69,6 @@ body:not([data-page="index"]) .nogl-mark { left: auto; right: 8vw; transform: no
 .chip-b[disabled] { opacity: .4; cursor: not-allowed; }
 .chip-b.ok { background: #19c37d; color: #fff; }
 .chip.inline { margin-top: 0; }
-.trace-btn { display: block; margin: 26px auto 0; background: none; border: 0; color: var(--tx2); font: 500 12px/1 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; cursor: pointer; padding: 8px; }
-.trace-btn::before { content: ''; display: inline-block; width: 22px; height: 2px; border-radius: 2px; background: currentColor; vertical-align: middle; margin-right: 10px; }
-.trace-btn:hover { color: var(--tx); }
 
 /* sections */
 main { position: relative; z-index: 1; }
@@ -355,10 +352,6 @@ html:has(.top.is-hidden) .announce { transform: translateY(-100%); }
 .pt-strip button { width: 56px; height: 56px; border-radius: 50%; border: 0; padding: 0; background: center / cover; opacity: .5; cursor: pointer; transition: opacity .3s, box-shadow .3s; }
 .pt-strip button:hover, .pt-strip button[aria-current] { opacity: 1; }
 .pt-strip button[aria-current] { box-shadow: 0 0 0 2px #fff; }
-.pt-strip .pt-pause { width: 40px; height: 40px; margin-left: 6px; opacity: .8; background: rgba(255, 255, 255, .12); display: flex; align-items: center; justify-content: center; gap: 4px; }
-.pt-pause i { width: 3px; height: 12px; background: #fff; border-radius: 1px; }
-.pt-pause[aria-pressed="true"] i:first-child { width: 0; height: 0; background: none; border-left: 11px solid #fff; border-top: 7px solid transparent; border-bottom: 7px solid transparent; border-radius: 0; }
-.pt-pause[aria-pressed="true"] i:last-child { display: none; }
 .pt-copy .credit { color: rgba(255, 255, 255, .5); }
 
 /* timelock: governance as one sentence, its steps, and the Timelock as a dial (app.js timelock()) */
