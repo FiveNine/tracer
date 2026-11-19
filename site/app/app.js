@@ -11,6 +11,7 @@ import { loader, cursor, autoHide } from '../runtime/dom/ui.js';
 import { makeShape } from './scene/shapes.js';
 import { createLine } from './scene/line.js';
 import { createField } from './scene/field.js';
+import { createFill } from './scene/fill.js';
 
 const S = window.SITE, X = S.experience || {}, C = S.content;
 const PID = document.body.dataset.page || 'index';
@@ -56,6 +57,8 @@ async function build() {
   if (!app.gl) return;
   field = createField(app, { blue: colors.blue, alpha: X.fieldAlpha ?? 0.24 });
   line = createLine(app, { N, shapes, colors: { blue: colors.blue, paper: colors.paper, hotOnBlue: colors.hotOnBlue, hotOnPaper: colors.hotOnPaper } });
+  // shapes with solid areas ({ kind, fill: '<marks key>' }): the line fills them in its own colour once drawn
+  XP.shapes.forEach((sp, k) => { if (sp && sp.fill && marks[sp.fill]) createFill(app, line, { k, regions: marks[sp.fill], h: sp.h, blue: colors.blue }); });
   app.camera.position.set(0, 0, 11.3);
   // a breath of depth: the camera leans with the pointer
   let cx = 0, cy = 0;

@@ -109,7 +109,7 @@ def tags_timeline(k):
 pages, xpages = {}, {}
 
 # ---------------------------------------------------------------- home
-shapes = ['word', 'pillars', 'route', 'ring', 'loop', 'blocks', 'hub', {'kind': 'timeline', 'ids': TL_IDS, 'done': 2, 'vertical': True}, 'tracyArt', 'mark']
+shapes = ['word', 'pillars', 'route', 'ring', 'loop', 'blocks', 'hub', {'kind': 'timeline', 'ids': TL_IDS, 'done': 2, 'vertical': True}, {'kind': 'tracyArt', 'fill': 'tracyFill'}, 'mark']
 pages['index'], xpages['index'] = page(
     'Tracer: carbon removal, traced on-chain', 'Tracer is a real-world asset project on Base. TRCR holders govern the Carrot protocol, where verified carbon removal is issued, traded and retired on-chain.',
     shapes, [
@@ -154,7 +154,7 @@ pages['index'], xpages['index'] = page(
     ],
     tags=[{'id': 'p1', 'k': 1, 'label': 'RWA', 'pos': 'mid'}, {'id': 'p2', 'k': 1, 'label': 'Base', 'pos': 'mid'}, {'id': 'p3', 'k': 1, 'label': 'DAO', 'pos': 'mid'}]
     + tags_route(2) + tags_ring(3) + tags_loop(4) + [{'id': 'chain', 'k': 5, 'label': 'Base · Ethereum L2', 'flip': True}] + tags_hub(6) + tags_timeline(7),
-    art=[{'k': 8, 'src': 'tracy-fill.png', 'fill': True}])   # Tracy (k 8) is drawn by the line, then her colours fill in
+    )   # Tracy (k 8) is drawn by the line, then the line fills her blue areas (tracyFill)
 
 # ---------------------------------------------------------------- token
 shapes = ['ring', 'wave', 'mark', 'ring', 'wave']
