@@ -30,8 +30,12 @@ app.facts = {
 /* ---------- tone: the world is blue (white line) or paper (blue line); the page's ink follows ---------- */
 const root = document.documentElement;
 let kShown = -1;
+// the scroll keys move 'tone' gradually; what is shown snaps to the nearer world and eases there quickly, so the page is
+// never left in a half-blue, half-paper wash when the reader stops scrolling between two sections
+P.define('tone.view', 0, { rate: 3.2 });
+app.add(() => { if (P.has('tone')) P.set('tone.view', P.get('tone') > 0.5 ? 1 : 0); }, 1);
 app.add(() => {
-  const tv = P.get('tone'), k = Math.round(tv * tv * tv * (tv * (tv * 6 - 15) + 10) * 1000) / 1000;
+  const tv = P.get('tone.view'), k = Math.round(tv * tv * tv * (tv * (tv * 6 - 15) + 10) * 1000) / 1000;
   if (k !== kShown) { root.style.setProperty('--k', k); root.classList.toggle('on-blue', k < 0.5); kShown = k; }
 }, 20);
 
@@ -72,7 +76,7 @@ function labels() {
   app.add(() => {
     const s = P.get('line.shape'), draw = P.get('line.draw'), alpha = P.get('line.alpha');
     for (const it of items) {
-      const near = Math.max(0, 1 - Math.abs(s - it.k) * 3.2) * (draw > 0.96 ? 1 : 0) * Math.min(1, alpha * 1.5);
+      const near = Math.max(0, 1 - Math.abs(s - it.k) * 3.2) * (draw > 0.96 ? 1 : 0) * Math.min(1, alpha * 1.5) * line.fade;
       let op = Math.round(near * 100) / 100;
       if (op > 0.01 && line.node(it.k, it.id, v)) {
         v.project(app.camera);
@@ -84,39 +88,69 @@ function labels() {
     }
     // artwork laid over a shape (Tracy's line art over her silhouette): fitted to two corner nodes, in only once the line has arrived
     for (const it of arts) {
-      const near = Math.max(0, 1 - Math.abs(s - it.k) * 7) * (draw > 0.98 ? 1 : 0) * Math.min(1, alpha * 1.5);
+      const near = Math.max(0, 1 - Math.abs(s - it.k) * 7) * (draw > 0.98 ? 1 : 0) * Math.min(1, alpha * 1.5) * line.fade;
       let op = Math.round(near * near * 100) / 100;
       if (op > 0.01 && line.node(it.k, 'tl', v)) {
         v.project(app.camera); const x0 = (v.x + 1) / 2 * app.width, y0 = (1 - v.y) / 2 * app.height;
         line.node(it.k, 'br', v); v.project(app.camera); const x1 = (v.x + 1) / 2 * app.width, y1 = (1 - v.y) / 2 * app.height;
         it.el.style.transform = `translate3d(${x0.toFixed(1)}px, ${y0.toFixed(1)}px, 0)`;
         it.el.style.width = (x1 - x0).toFixed(1) + 'px'; it.el.style.height = (y1 - y0).toFixed(1) + 'px';
-        // behind the copy the artwork becomes a faint ghost, like the line
-        const A = Math.max(1, (x1 - x0) * (y1 - y0));
-        const cover = textRects.reduce((m, r) => Math.max(m, Math.max(0, Math.min(x1, r.right) - Math.max(x0, r.left)) * Math.max(0, Math.min(y1, r.bottom) - Math.max(y0, r.top)) / A), 0);
-        op = Math.round(op * (1 - Math.min(1, cover * 3) * 0.88) * 100) / 100;
       }
       if (op !== it.op) { it.el.style.opacity = String(op); it.op = op; }
     }
   }, 900);
 }
 
-/* ---------- the line passes behind the words ---------- */
+/* ---------- the line never competes with the words ---------- */
+// When copy scrolls across the line (mostly on phones, where the line waits at the top while the text moves up),
+// the whole line steps back together, smoothly; its labels and artwork with it. No patches, no boxes.
 function occlusion() {
   if (!line) return;
-  // each section's copy, block by block (headline, text, lists, buttons), so the line still shows in the gaps
-  const blocks = [...document.querySelectorAll('.sec-in > *, .foot-top > *, .foot-cols')];
-  let t0 = -1;
-  app.add(t => {
-    if (t - t0 < 1 / 30) return; t0 = t;
-    const vh = app.height, out = [];
+  const blocks = [...document.querySelectorAll('.sec-in > :not([data-stage]), .foot-top > *, .foot-cols')];   // the hero's reserved box is the line's, not copy
+  const box = {};
+  let fade = 1;
+  app.add((t, dt) => {
+    const vh = app.height;
+    line.screenBox(box);
+    const A = Math.max(1, (box.right - box.left) * (box.bottom - box.top));
+    let cover = 0;
+    const rects = [];
     for (const el of blocks) {
       const r = el.getBoundingClientRect();
-      if (r.bottom < -40 || r.top > vh + 40 || r.width < 2 || r.height < 2) continue;
-      out.push(r); if (out.length === 8) break;
+      if (r.bottom < 0 || r.top > vh || r.width < 2 || r.height < 2) continue;
+      rects.push(r);
+      const ix = Math.max(0, Math.min(box.right, r.right + 16) - Math.max(box.left, r.left - 16));
+      const iy = Math.max(0, Math.min(box.bottom, r.bottom + 16) - Math.max(box.top, r.top - 16));
+      cover += ix * iy / A;
     }
-    line.occlude(out); textRects = out;
+    textRects = rects;
+    const target = 1 - 0.82 * Math.min(1, Math.max(0, (cover - 0.03) / 0.22));
+    fade += (target - fade) * Math.min(1, dt * 6);
+    line.fade = fade;
   }, 8);
+}
+
+/* ---------- the hero's mark sits in a box the layout keeps free for it ---------- */
+// The page reserves [data-stage] for the wordmark; the first key is fitted to that box, so the mark and the
+// headline never overlap, whatever the window's shape.
+function fitStage(keys) {
+  const el = document.querySelector('[data-stage]');
+  if (!el || !line || !keys[0]) return;
+  const fit = () => {
+    const r = el.getBoundingClientRect(), y0 = r.top + scrollY;   // the hero key sits at the top of the page
+    const W = innerWidth, H = innerHeight;
+    const vhw = 2 * Math.tan(THREE.MathUtils.degToRad(app.camera.fov / 2)) * 11.3, wpp = vhw / H;   // world units per CSS px
+    const b = line.bounds(0), bw = b[2] - b[0], bh = b[3] - b[1];
+    const sc = Math.min(r.width * wpp / bw, r.height * wpp / bh);
+    const cx = r.left + r.width / 2, cy = y0 + r.height / 2;
+    Object.assign(keys[0].set, {
+      'line.x': +((cx - W / 2) / (W / 2) - (b[0] + b[2]) / 2 * sc / (vhw * W / H / 2)).toFixed(4),
+      'line.y': +((H / 2 - cy) / (H / 2) - (b[1] + b[3]) / 2 * sc / (vhw / 2)).toFixed(4),
+      'line.s': +sc.toFixed(4)
+    });
+  };
+  fit();
+  app.onMeasure(fit);   // before the choreography re-reads its keys (it measures after this)
 }
 
 /* ---------- touch the line ---------- */
@@ -221,9 +255,11 @@ for (const name of X.modules || []) {
   if (mod.default) await mod.default(app, { THREE, site: S, experience: X, line, page: PID });
 }
 const keys = keysOf(XP.keys);
+fitStage(keys);
 createChoreo(app, keys);
 // the first key is where the page starts (so the intro lands on it)
 if (keys[0]) for (const [n, v] of Object.entries(keys[0].set)) if (P.has(n)) P.set(n, v, true);
+P.set('tone.view', P.get('tone') > 0.5 ? 1 : 0, true);
 labels(); touch(); occlusion();
 window.__trace = { app, line };   // for stills, QA and editors
 if (app.gl) { await app.idle(); app.renderer.compile(app.scene, app.camera); }

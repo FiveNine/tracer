@@ -30,7 +30,12 @@ const VERT = /* glsl */`
     float k0 = floor(s), f = s - k0, k1 = min(k0 + 1., uK - 1.);
     float u = i / (uN - 1.);
     float g = smoothstep(0., 1., clamp(f * (1. + uStagger) - u * uStagger, 0., 1.));
-    vec4 p = mix(sh(i, k0), sh(i, k1), g);
+    vec4 A = sh(i, k0), B = sh(i, k1);
+    vec4 p = mix(A, B, g);
+    // visibility while re-routing: a point that is part of a hidden jump in either shape fades out as soon as it starts
+    // moving (or only appears once it has arrived), so it never draws a streak across the screen on its way
+    float both = min(A.w, B.w);
+    p.w = both + (A.w - both) * (1. - smoothstep(0., .3, g)) + (B.w - both) * smoothstep(.7, 1., g);
     float tr = g * (1. - g) * 4.;
     p.xyz += tr * uNoise * vec3(sin(u * 23. + uTime * 1.3 + k0 * 1.7), cos(u * 17. - uTime * 1.1), sin(u * 11. + uTime) * 2.);
     p.xyz += uNoise * .04 * vec3(sin(u * 9. + uTime * .5), cos(u * 7. + uTime * .43), 0.);   // it is never quite still
@@ -40,20 +45,23 @@ const VERT = /* glsl */`
   vec2 px(vec4 c) { return (c.xy / c.w * .5 + .5) * uRes; }
   // the pointer pushes the line aside (in pixels), so the hand can feel it
   vec2 push(vec2 q) {
-    vec2 d = q - uPointer; float l = length(d), R = 90. * uDpr;
-    return q + (l > .001 ? d / l : vec2(0.)) * uPush * R * .32 * exp(-(l * l) / (R * R));
+    vec2 d = q - uPointer; float l = length(d), R = 70. * uDpr;
+    return q + (l > .001 ? d / l : vec2(0.)) * uPush * R * .12 * exp(-(l * l) / (R * R));   // a nudge, never a bend
   }
   void main() {
     // neighbours two samples away: one-sample jitter in a traced outline would make the tangent flicker
     vec4 a = at(aI - 2.), b = at(aI), c = at(aI + 2.);
     vec4 cb = clip(b.xyz);
     vec2 pa = push(px(clip(a.xyz))), pb = push(px(cb)), pc = push(px(clip(c.xyz)));
-    vec2 t = pc - pa; t = length(t) > 1e-4 ? normalize(t) : vec2(1., 0.);
-    vec2 n = vec2(-t.y, t.x);
-    // a sharp turn (corners, the jumps between strokes) narrows the ribbon, so the halo never sprays spikes
+    // direction from the visible neighbours only: across a hidden jump the far sample would twist the ribbon
     vec2 ta = pb - pa, tc = pc - pb;
-    float bend = (length(ta) > 1e-3 && length(tc) > 1e-3) ? dot(normalize(ta), normalize(tc)) : 1.;
-    float k = mix(.15, 1., smoothstep(-.1, .85, bend));
+    bool okA = a.w > .001 && length(ta) > .05, okC = c.w > .001 && length(tc) > .05;
+    vec2 t = okA && okC ? normalize(ta) + normalize(tc) : okA ? ta : okC ? tc : vec2(1., 0.);
+    t = length(t) > 1e-4 ? normalize(t) : vec2(1., 0.);
+    vec2 n = vec2(-t.y, t.x);
+    // a sharp turn narrows the ribbon, so the halo never sprays spikes at corners
+    float bend = okA && okC ? dot(normalize(ta), normalize(tc)) : 1.;
+    float k = mix(.15, 1., smoothstep(-.1, .85, bend)) * step(.001, b.w);
     vec2 q = pb + n * aSide * uWidth * .5 * k;
     cb.xy = (q / uRes * 2. - 1.) * cb.w;
     gl_Position = cb;
@@ -63,20 +71,7 @@ const VERT = /* glsl */`
 const FRAG = /* glsl */`
   uniform vec3 uColor, uHot;
   uniform float uAlpha, uHalo, uDraw, uPulse, uPulseAmt, uClickU, uClickAge, uTime;
-  uniform vec4 uRects[8];   // text blocks on screen (drawing-buffer px, y up): the line passes behind them
-  uniform int uNRects;
-  uniform float uFeather;
   varying float vSide, vU, vVis, vW;
-  float behindText() {
-    float occ = 0.;
-    for (int i = 0; i < 8; i++) {
-      if (i >= uNRects) break;
-      vec4 r = uRects[i];
-      vec2 d = max(r.xy - gl_FragCoord.xy, gl_FragCoord.xy - r.zw);
-      occ = max(occ, 1. - smoothstep(0., uFeather, max(d.x, d.y)));
-    }
-    return occ;
-  }
   void main() {
     if (vU > uDraw + .002) discard;
     float e = abs(vSide);
@@ -93,8 +88,8 @@ const FRAG = /* glsl */`
     float head = (1. - smoothstep(0., .03, uDraw - vU)) * step(uDraw, .999) * 1.2;
     float hot = clamp(sig + touch + head, 0., 1.6);
     vec3 col = mix(uColor, uHot, clamp(hot, 0., 1.));
-    float a = body * uAlpha * max(vVis, hot * .9 * step(.01, vVis + hot)) * (1. + hot * .6);
-    a *= mix(1., .1, behindText());   // behind copy the line is a faint ghost, so the words always read first
+    // the pulse brightens what is drawn; it never reveals the hidden jumps between strokes
+    float a = body * uAlpha * min(1., vVis * (1. + hot * 1.4)) * step(.001, vVis);
     if (a < .003) discard;
     gl_FragColor = vec4(col, clamp(a, 0., 1.));
   }`;
@@ -103,8 +98,13 @@ export function createLine(app, o) {
   const P = app.params, N = o.N || 2048, K = o.shapes.length;
   P.defineAll({
     'line.shape': [0, { rate: 2.4 }], 'line.draw': [1, { rate: 4 }], 'line.x': 0, 'line.y': 0, 'line.s': 1,
-    'line.rx': 0, 'line.ry': 0, 'line.w': 2.4, 'line.halo': 0.22, 'line.noise': 0.35, 'line.alpha': 1,
+    'line.rx': 0, 'line.ry': 0, 'line.w': 2.4, 'line.halo': 0.22, 'line.noise': 0.12, 'line.alpha': 1,
     'pulse.amt': [0.8, { rate: 2 }], 'pulse.speed': 0.07
+  });
+  const bounds = o.shapes.map(sh => {
+    let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+    for (let i = 0; i < N; i++) { if (sh.data[i * 4 + 3] <= 0) continue; const x = sh.data[i * 4], y = sh.data[i * 4 + 1]; x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
+    return [x0, y0, x1, y1];
   });
   const data = new Float32Array(N * K * 4);
   o.shapes.forEach((s, k) => data.set(s.data, k * N * 4));
@@ -125,8 +125,7 @@ export function createLine(app, o) {
     uTime: { value: 0 }, uNoise: { value: 0.3 }, uRes: { value: new THREE.Vector2(1, 1) }, uDpr: { value: 1 },
     uPointer: { value: new THREE.Vector2(-1e4, -1e4) }, uPush: { value: 0 },
     uColor: { value: new THREE.Color() }, uHot: { value: new THREE.Color() }, uDraw: { value: 1 },
-    uPulse: { value: 0 }, uPulseAmt: { value: 0 }, uClickU: { value: 0 }, uClickAge: { value: -1 },
-    uRects: { value: Array.from({ length: 8 }, () => new THREE.Vector4()) }, uNRects: { value: 0 }, uFeather: { value: 40 }
+    uPulse: { value: 0 }, uPulseAmt: { value: 0 }, uClickU: { value: 0 }, uClickAge: { value: -1 }
   };
   // two passes over one geometry: a wide soft halo, then the crisp line (the shared uniforms are the same objects)
   const matOf = halo => new THREE.ShaderMaterial({
@@ -145,7 +144,7 @@ export function createLine(app, o) {
   let pushK = 0;
 
   app.add((t, dt) => {
-    const tv = P.get('tone'), tone = tv * tv * tv * (tv * (tv * 6 - 15) + 10);   // smootherstep: little time in the in-between lavender
+    const tv = P.get('tone.view'), tone = tv * tv * tv * (tv * (tv * 6 - 15) + 10);   // smootherstep: little time in the in-between lavender
     bg.copy(cBlue).lerp(cPaper, tone);
     app.renderer.setClearColor(bg, 1);
     const w = app.width, h = app.height, dpr = app.renderer.getPixelRatio();
@@ -169,9 +168,9 @@ export function createLine(app, o) {
       u.uClickAge.value = t - clickT > 6 ? -1 : t - clickT;
     }
     core.material.uniforms.uWidth.value = P.get('line.w') * dpr;
-    core.material.uniforms.uAlpha.value = P.get('line.alpha');
+    core.material.uniforms.uAlpha.value = P.get('line.alpha') * api.fade;
     halo.material.uniforms.uWidth.value = P.get('line.w') * dpr * 9;
-    halo.material.uniforms.uAlpha.value = P.get('line.alpha') * P.get('line.halo');
+    halo.material.uniforms.uAlpha.value = P.get('line.alpha') * P.get('line.halo') * api.fade;
     tmp.copy(cWhite).lerp(cBlue, tone);
     core.material.uniforms.uColor.value.copy(tmp); halo.material.uniforms.uColor.value.copy(tmp);
     tmp.copy(cHotBlue).lerp(cHotPaper, tone);
@@ -181,15 +180,21 @@ export function createLine(app, o) {
   const v = new THREE.Vector3();
   const api = {
     group, N, shapes: o.shapes, texture: tex,
-    /** text blocks the line passes behind: DOM rects in CSS px (it dims inside them, with a soft edge) */
-    occlude(rects, pad = 18) {
-      const dpr = app.renderer.getPixelRatio(), h = app.height, n = Math.min(8, rects.length);
-      for (let i = 0; i < n; i++) {
-        const r = rects[i];
-        common.uRects.value[i].set((r.left - pad) * dpr, (h - r.bottom - pad) * dpr, (r.right + pad) * dpr, (h - r.top + pad) * dpr);
+    /** the line's box on screen in its current shape (CSS px): for keeping it clear of the words */
+    screenBox(out = {}) {
+      const k = Math.max(0, Math.min(K - 1, Math.round(P.get('line.shape')))), b = bounds[k];
+      let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+      for (const [x, y] of [[b[0], b[1]], [b[2], b[1]], [b[0], b[3]], [b[2], b[3]]]) {
+        v.set(x, y, 0).applyMatrix4(group.matrixWorld).project(app.camera);
+        const sx = (v.x + 1) / 2 * app.width, sy = (1 - v.y) / 2 * app.height;
+        x0 = Math.min(x0, sx); x1 = Math.max(x1, sx); y0 = Math.min(y0, sy); y1 = Math.max(y1, sy);
       }
-      common.uNRects.value = n; common.uFeather.value = 44 * dpr;
+      return Object.assign(out, { left: x0, top: y0, right: x1, bottom: y1 });
     },
+    /** the shape's bounds in its own units [x0, y0, x1, y1] */
+    bounds: k => bounds[k],
+    /** an extra multiplier on the whole line (it steps back while copy crosses it) */
+    fade: 1,
     /** world position of a node of shape k (labels) */
     node(k, id, out = new THREE.Vector3()) {
       const s = o.shapes[k]; const p = s && s.nodes[id]; if (!p) return null;

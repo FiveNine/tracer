@@ -479,7 +479,8 @@
        }
       ],
       "chip": true,
-      "trace": "Touch the line, or send a trace"
+      "trace": "Touch the line, or send a trace",
+      "stageBox": true
      },
      {
       "id": "pillars",

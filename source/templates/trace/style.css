@@ -84,16 +84,19 @@ main { position: relative; z-index: 1; }
 .stage-bottom .sec-in { max-width: 760px; }
 .stage-none .sec-in { max-width: 1120px; margin: 0 auto; }
 .k-hero.stage-center { justify-content: flex-end; padding-bottom: 11vh; }
+/* the box the hero's wordmark is fitted into: the copy flows below it, so the two never overlap */
+.hero-stage { height: clamp(70px, 22vh, 230px); width: min(1000px, 100%); margin: 0 auto clamp(18px, 4vh, 44px); }
+.page-index .k-hero.stage-center { justify-content: center; padding-top: calc(80px + 3vh); padding-bottom: 5vh; }
 .eyebrow { font: 500 12px/1.2 var(--font-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--tx2); margin: 0 0 18px; }
 h1, h2 { font-family: var(--font-display); font-weight: 500; letter-spacing: -.035em; line-height: 1; margin: 0; text-wrap: balance; }
 h1 { font-size: clamp(42px, 6.2vw, 92px); }
 .page-index .k-hero h1 { font-size: clamp(36px, 4.2vw, 64px); }
-.page-index .k-hero.stage-center { padding-bottom: 7vh; }
 .page-index .k-hero .lede { margin-top: 16px; }
 .page-index .k-hero .ctas { margin-top: 22px; }
 h2 { font-size: clamp(34px, 4.2vw, 62px); }
 .lede { margin-top: 22px; color: var(--tx2); font-size: clamp(17px, 1.35vw, 20px); max-width: 46ch; }
 .stage-center .lede { margin-left: auto; margin-right: auto; }
+.stage-center .ctas { justify-content: center; }
 .lede p { margin: 0 0 .7em; }
 .lede b, .prose b { color: var(--tx); font-weight: 600; }
 .tbc { font: 500 .78em/1 var(--font-mono); letter-spacing: .04em; padding: 3px 7px; border-radius: 6px; background: color-mix(in srgb, #ffd166 30%, transparent); color: inherit; white-space: nowrap; }
@@ -303,6 +306,8 @@ html:has(.top.is-hidden) .announce { transform: translateY(-100%); }
   .sec.full { justify-content: flex-end; padding-bottom: 9vh; min-height: 100svh; }
   .stage-right.full, .stage-left.full { padding-top: 48vh; }
   .k-hero.stage-center { padding-top: 46vh; }
+  .page-index .k-hero.stage-center { padding-top: 96px; justify-content: flex-start; }
+  .hero-stage { height: 22vh; margin-bottom: 4vh; }
   .stage-right .facts, .stage-left .facts, .stage-right .cards, .stage-left .cards { grid-template-columns: 1fr; }
   .facts { grid-template-columns: 1fr; }
   .safes li { grid-template-columns: 30px 1fr; }

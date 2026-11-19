@@ -56,7 +56,7 @@ function head(s, tag = 'h2') {
 /* ---------- section kinds ---------- */
 const KINDS = {
   hero(s, c, pid) {
-    return `${s.mark ? '' : ''}${head(s, 'h1')}
+    return `${s.stageBox ? '<div class="hero-stage" data-stage aria-hidden="true"></div>' : ''}${head(s, 'h1')}
       ${ctas(s.ctas, c)}
       ${s.chip ? contractChip(c, 'hero-chip') : ''}
       ${s.trace ? `<button type="button" class="trace-btn" data-trace>${esc(s.trace)}</button>` : ''}`;

@@ -52,7 +52,7 @@ export function createField(app, o = {}) {
   const ray = new THREE.Raycaster(), plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), -pts.position.z), hit = new THREE.Vector3(), nd = new THREE.Vector2();
   let ringT = -10, lift = 0;
   app.add((t, dt) => {
-    const tv = P.get('tone'), tone = tv * tv * tv * (tv * (tv * 6 - 15) + 10);
+    const tv = P.get('tone.view'), tone = tv * tv * tv * (tv * (tv * 6 - 15) + 10);
     u.uColor.value.copy(white).lerp(blue, tone);
     u.uAlpha.value = P.get('field.alpha') * (0.75 + tone * 0.35);
     u.uTime.value = app.reduced ? 0 : t;

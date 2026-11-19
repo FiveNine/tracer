@@ -114,7 +114,7 @@ pages['index'], xpages['index'] = page(
     shapes, [
         sec('hero', 'hero', 'blue', 'hero', 0, full=True, eyebrow='Real-world assets · Built on Base', title='Carbon removal, traced on-chain.',
             lede=['Tracer governs the Carrot protocol, where verified carbon removal becomes an on-chain asset on Base and is retired for good. **TRCR** is how you take part.'],
-            ctas=[{'label': 'Buy TRCR', 'href': '@buy'}, {'label': 'Read the token guide', 'href': 'token', 'ghost': True}], chip=True, trace='Touch the line, or send a trace'),
+            ctas=[{'label': 'Buy TRCR', 'href': '@buy'}, {'label': 'Read the token guide', 'href': 'token', 'ghost': True}], chip=True, trace='Touch the line, or send a trace', stageBox=True),
         sec('pillars', 'pillars', 'blue', 'right', 1, full=True, eyebrow='Tracer in three lines', title='Three things to know.', items=[
             {'title': 'A real-world asset project', 'body': 'Every CRRT stands for endorsed carbon removal, down to the gram.', 'href': 'ecosystem'},
             {'title': 'Built on Base', 'body': 'A fast, low-cost Ethereum layer 2. One wallet, cents per transaction.', 'href': 'base'},
