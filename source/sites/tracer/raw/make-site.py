@@ -38,7 +38,8 @@ def pose(stage, shape, k, tone):
     elif stage in ('right', 'left'):
         s = round(min(1.0, 3.8 / w, 3.7 / h), 3)
         tilt = .16 if k % 2 else -.16      # alternate, so the line sways in depth from chapter to chapter
-        d = {'line.x': .5 if stage == 'right' else -.5, 'line.y': 0, 'line.s': s, 'line.alpha': 1, 'pulse.amt': .8, 'line.ry': tilt, 'line.rx': .06}
+        if kind(shape) == 'tracyArt': tilt = 0   # flat to the screen: her colours fill in exactly under the line
+        d = {'line.x': .5 if stage == 'right' else -.5, 'line.y': 0, 'line.s': s, 'line.alpha': 1, 'pulse.amt': .8, 'line.ry': tilt, 'line.rx': .06 if tilt else 0}
         n = {'line.x': 0, 'line.y': .46, 'line.s': round(min(2.1 / w, 2.0 / h), 3), 'line.ry': tilt * .4, 'line.rx': 0}
     elif stage == 'quiet':   # a calm wave along the foot of the screen behind long reads
         d = {'line.x': 0, 'line.y': -.82, 'line.s': 1, 'line.alpha': .45, 'pulse.amt': .35, 'line.ry': 0, 'line.rx': 0}
@@ -153,7 +154,7 @@ pages['index'], xpages['index'] = page(
     ],
     tags=[{'id': 'p1', 'k': 1, 'label': 'RWA', 'pos': 'mid'}, {'id': 'p2', 'k': 1, 'label': 'Base', 'pos': 'mid'}, {'id': 'p3', 'k': 1, 'label': 'DAO', 'pos': 'mid'}]
     + tags_route(2) + tags_ring(3) + tags_loop(4) + [{'id': 'chain', 'k': 5, 'label': 'Base · Ethereum L2', 'flip': True}] + tags_hub(6) + tags_timeline(7),
-    )   # Tracy (k 8) is drawn by the line itself: no artwork overlay
+    art=[{'k': 8, 'src': 'tracy-fill.png', 'fill': True}])   # Tracy (k 8) is drawn by the line, then her colours fill in
 
 # ---------------------------------------------------------------- token
 shapes = ['ring', 'wave', 'mark', 'ring', 'wave']

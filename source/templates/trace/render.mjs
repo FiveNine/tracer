@@ -196,7 +196,9 @@ export function render(site, ctx) {
 <div class="nogl-mark" aria-hidden="true">${svgOf(pid === 'index' ? b.wordmark : b.mark, 'nogl-svg', '')}</div>
 <a class="skip" href="#main">Skip to content</a>
 ${header(site, c, pid)}
-<div class="tags" data-tags aria-hidden="true">${(pg.art || []).map(a => `<div class="art" data-art data-k="${esc(a.k)}" style="-webkit-mask-image:url(assets/${esc(a.src)});mask-image:url(assets/${esc(a.src)})"></div>`).join('')}${(pg.tags || []).map(t => `<span class="tag${t.flip ? ' flip' : ''}${t.pos ? ' ' + esc(t.pos) : ''}" data-tag="${esc(t.id)}" data-k="${esc(t.k)}"><i></i><span class="tag-l">${esc(t.label)}</span></span>`).join('')}</div>
+<div class="tags" data-tags aria-hidden="true">${(pg.art || []).map(a => a.fill
+      ? `<div class="art fill" data-art data-fill data-k="${esc(a.k)}" style="background-image:url(assets/${esc(a.src)})"></div>`
+      : `<div class="art" data-art data-k="${esc(a.k)}" style="-webkit-mask-image:url(assets/${esc(a.src)});mask-image:url(assets/${esc(a.src)})"></div>`).join('')}${(pg.tags || []).map(t => `<span class="tag${t.flip ? ' flip' : ''}${t.pos ? ' ' + esc(t.pos) : ''}" data-tag="${esc(t.id)}" data-k="${esc(t.k)}"><i></i><span class="tag-l">${esc(t.label)}</span></span>`).join('')}</div>
 <main id="main" class="page-${esc(pid)}">${pg.sections.map(s => section(s, c, pid)).join('')}</main>
 ${footer(site, c)}
 ${tracy(c)}`;

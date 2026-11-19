@@ -219,6 +219,11 @@ h2 { font-size: clamp(34px, 4.2vw, 62px); }
 /* artwork laid over a line shape (Tracy) */
 .art { position: absolute; left: 0; top: 0; opacity: 0; background: var(--hi); -webkit-mask-size: 100% 100%; mask-size: 100% 100%; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; will-change: transform, opacity; }
 
+/* a filled artwork that wipes in over its line drawing (Tracy's colours) */
+.art.fill { background-color: transparent; background-size: 100% 100%; background-repeat: no-repeat; clip-path: inset(100% 0 0 0); transition: clip-path 1.3s cubic-bezier(.65, 0, .35, 1), opacity .3s; }
+.art.fill.is-filled { clip-path: inset(0 0 0 0); }
+html.reduced .art.fill { transition: none; }
+
 /* launch bar */
 .announce { position: fixed; top: 0; left: 0; right: 0; z-index: 31; height: 34px; display: flex; align-items: center; justify-content: center; gap: 12px; font-size: 13px; text-decoration: none; color: var(--btn-fg); background: var(--btn); transition: transform .5s cubic-bezier(.2, .7, .2, 1); }
 .announce b { font: 500 11px/1 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; }

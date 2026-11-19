@@ -70,7 +70,7 @@ async function build() {
 function labels() {
   const box = document.querySelector('[data-tags]');
   if (!box || !line) return;
-  const arts = [...box.querySelectorAll('[data-art]')].map(el => ({ el, k: +el.dataset.k, op: -1 }));
+  const arts = [...box.querySelectorAll('[data-art]')].map(el => ({ el, k: +el.dataset.k, op: -1, fill: el.hasAttribute('data-fill'), since: -1, filled: false }));
   const items = [...box.querySelectorAll('[data-tag]')].map(el => ({ el, id: el.dataset.tag, k: +el.dataset.k, op: -1, x: 0, y: 0 }));
   const v = new THREE.Vector3();
   app.add(() => {
@@ -90,6 +90,15 @@ function labels() {
     for (const it of arts) {
       const near = Math.max(0, 1 - Math.abs(s - it.k) * 7) * (draw > 0.98 ? 1 : 0) * Math.min(1, alpha * 1.5) * line.fade;
       let op = Math.round(near * near * 100) / 100;
+      if (it.fill) {
+        // the colours fill in once the line has finished drawing (it has settled on the shape for a moment);
+        // they wipe up from the bottom (CSS), and clear as soon as the line starts to leave
+        op = near > 0.5 ? 1 : 0;
+        if (near > 0.985) { if (it.since < 0) it.since = app.time; } else it.since = -1;
+        const want = it.since >= 0 && app.time - it.since > (app.reduced ? 0 : 0.35);
+        if (near < 0.9 && it.filled) { it.el.classList.remove('is-filled'); it.filled = false; }
+        else if (want && !it.filled) { it.el.classList.add('is-filled'); it.filled = true; }
+      }
       if (op > 0.01 && line.node(it.k, 'tl', v)) {
         v.project(app.camera); const x0 = (v.x + 1) / 2 * app.width, y0 = (1 - v.y) / 2 * app.height;
         line.node(it.k, 'br', v); v.project(app.camera); const x1 = (v.x + 1) / 2 * app.width, y1 = (1 - v.y) / 2 * app.height;

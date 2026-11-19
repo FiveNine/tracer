@@ -917,7 +917,13 @@
       "label": "Academy"
      }
     ],
-    "art": []
+    "art": [
+     {
+      "k": 8,
+      "src": "tracy-fill.png",
+      "fill": true
+     }
+    ]
    },
    "token": {
     "title": "TRCR token: contract, airdrop, how to buy · Tracer",
@@ -2352,8 +2358,8 @@
        "line.s": 1.0,
        "line.alpha": 1,
        "pulse.amt": 0.8,
-       "line.ry": -0.16,
-       "line.rx": 0.06,
+       "line.ry": 0,
+       "line.rx": 0,
        "line.shape": 8,
        "tone": 1
       },
@@ -2361,7 +2367,7 @@
        "line.x": 0,
        "line.y": 0.46,
        "line.s": 0.556,
-       "line.ry": -0.064,
+       "line.ry": 0.0,
        "line.rx": 0
       },
       "shift": "-18vh",
