@@ -515,23 +515,49 @@
      },
      {
       "id": "projects",
-      "kind": "lens",
+      "kind": "portal",
       "tone": "blue",
-      "stage": "right",
+      "stage": "none",
       "full": true,
       "eyebrow": "Real-world assets",
       "title": "Every tonne has a place.",
       "lede": [
        "Each CRRT comes from a real removal project you can look into: where it is, who endorsed it, how much has been issued and how much is retired."
       ],
+      "items": [
+       {
+        "title": "Mangroves",
+        "img": "photos/mangrove-portal.webp",
+        "body": "Coastal forests lock carbon into their roots and the mud beneath them.",
+        "credit": "Photo: Priyaflorenceshah, [CC BY-SA 4.0](https://commons.wikimedia.org/wiki/File:Mangrove_forests_of_Mumbai.jpg)"
+       },
+       {
+        "title": "Reforestation",
+        "img": "photos/forest-portal.webp",
+        "body": "Trees planted on cleared land draw carbon down as they grow.",
+        "credit": "Photo: Sidoine Mbogni, [CC BY-SA 4.0](https://commons.wikimedia.org/wiki/File:Vue_a%C3%A9rienne_de_la_for%C3%AAt_tropicale_%C3%A0_Bodiman,_Yabassi,_Cameroun.jpg)"
+       },
+       {
+        "title": "Enhanced weathering",
+        "img": "photos/basalt-portal.webp",
+        "body": "Crushed basalt spread on fields binds CO₂ into stable minerals as it weathers.",
+        "credit": "Photo: Andy Waddington, [CC BY-SA 2.0](https://commons.wikimedia.org/wiki/File:Basalt_columns,_west_coast_of_Kerrera_-_geograph.org.uk_-_1754060.jpg)"
+       },
+       {
+        "title": "Biochar",
+        "img": "photos/biochar-portal.webp",
+        "body": "Plant waste heated without oxygen becomes a stable char that holds carbon in soil for centuries.",
+        "credit": "Photo: Tim Brunauer / GIZ, [CC BY-SA 4.0](https://commons.wikimedia.org/wiki/File:Charged_and_inoculated_biochar_ready_for_soil_application.jpg)"
+       }
+      ],
       "ctas": [
        {
         "label": "Explore the ecosystem",
-        "href": "ecosystem"
+        "href": "ecosystem",
+        "ghost": true
        }
       ],
-      "note": "The kinds of removal behind CRRT. Endorsed projects are listed on the marketplace at launch.",
-      "credit": "Photos: Priyaflorenceshah, Sidoine Mbogni, Tim Brunauer / GIZ (CC BY-SA 4.0); Andy Waddington (CC BY-SA 2.0). Wikimedia Commons."
+      "note": "The kinds of removal behind CRRT. Endorsed projects are listed on the marketplace at launch."
      },
      {
       "id": "token",
@@ -723,32 +749,7 @@
       "chip": true
      }
     ],
-    "tags": [
-     {
-      "id": "d1l",
-      "k": 2,
-      "label": "Mangroves",
-      "pos": "down"
-     },
-     {
-      "id": "d2l",
-      "k": 2,
-      "label": "Reforestation",
-      "pos": "down"
-     },
-     {
-      "id": "d3l",
-      "k": 2,
-      "label": "Enhanced weathering",
-      "pos": "down"
-     },
-     {
-      "id": "d4l",
-      "k": 2,
-      "label": "Biochar",
-      "pos": "down"
-     }
-    ],
+    "tags": [],
     "art": []
    },
    "token": {
@@ -1980,15 +1981,6 @@
       "nTo": -0.55
      },
      {
-      "kind": "thread",
-      "photos": [
-       "photos/mangrove-disc.webp",
-       "photos/forest-disc.webp",
-       "photos/basalt-disc.webp",
-       "photos/biochar-disc.webp"
-      ]
-     },
-     {
       "kind": "tracyArt",
       "fill": "tracyFill"
      },
@@ -2049,22 +2041,10 @@
      {
       "at": "#projects",
       "set": {
-       "line.x": 0.5,
-       "line.y": 0,
-       "line.s": 0.93,
-       "line.alpha": 1,
-       "pulse.amt": 0.8,
-       "line.ry": 0.1,
-       "line.rx": 0.06,
-       "line.shape": 2,
+       "line.alpha": 0,
+       "pulse.amt": 0,
+       "line.shape": 1,
        "tone": 0
-      },
-      "narrow": {
-       "line.x": 0,
-       "line.y": 0.47,
-       "line.s": 0.48,
-       "line.ry": 0.04000000000000001,
-       "line.rx": 0
       },
       "shift": "-18vh",
       "hold": 0.45
@@ -2072,12 +2052,9 @@
      {
       "at": "#token",
       "set": {
-       "line.x": 0,
-       "line.y": -0.82,
-       "line.s": 1,
        "line.alpha": 0,
        "pulse.amt": 0,
-       "line.shape": 2,
+       "line.shape": 1,
        "tone": 1
       },
       "shift": "-18vh",
@@ -2086,12 +2063,9 @@
      {
       "at": "#governance",
       "set": {
-       "line.x": 0,
-       "line.y": -0.82,
-       "line.s": 1,
        "line.alpha": 0,
        "pulse.amt": 0,
-       "line.shape": 2,
+       "line.shape": 1,
        "tone": 0
       },
       "shift": "-18vh",
@@ -2100,12 +2074,9 @@
      {
       "at": "#base",
       "set": {
-       "line.x": 0,
-       "line.y": -0.82,
-       "line.s": 1,
        "line.alpha": 0,
        "pulse.amt": 0,
-       "line.shape": 2,
+       "line.shape": 1,
        "tone": 0
       },
       "shift": "-18vh",
@@ -2114,12 +2085,9 @@
      {
       "at": "#ecosystem",
       "set": {
-       "line.x": 0,
-       "line.y": -0.82,
-       "line.s": 1,
        "line.alpha": 0,
        "pulse.amt": 0,
-       "line.shape": 2,
+       "line.shape": 1,
        "tone": 1
       },
       "shift": "-18vh",
@@ -2128,12 +2096,9 @@
      {
       "at": "#roadmap",
       "set": {
-       "line.x": 0,
-       "line.y": -0.82,
-       "line.s": 1,
        "line.alpha": 0,
        "pulse.amt": 0,
-       "line.shape": 2,
+       "line.shape": 1,
        "tone": 1
       },
       "shift": "-18vh",
@@ -2149,7 +2114,7 @@
        "pulse.amt": 0.8,
        "line.ry": 0,
        "line.rx": 0,
-       "line.shape": 3,
+       "line.shape": 2,
        "tone": 1
       },
       "narrow": {
@@ -2170,16 +2135,16 @@
        "line.s": 1.0,
        "line.alpha": 1,
        "pulse.amt": 0.8,
-       "line.ry": -0.16,
+       "line.ry": 0.16,
        "line.rx": 0.06,
-       "line.shape": 4,
+       "line.shape": 3,
        "tone": 0
       },
       "narrow": {
        "line.x": 0,
        "line.y": 0.46,
        "line.s": 0.667,
-       "line.ry": -0.064,
+       "line.ry": 0.064,
        "line.rx": 0
       },
       "shift": "-18vh",
@@ -2195,16 +2160,16 @@
        "line.s": 1.0,
        "line.alpha": 0.18,
        "pulse.amt": 0.3,
-       "line.ry": -0.16,
+       "line.ry": 0.16,
        "line.rx": 0.06,
-       "line.shape": 4,
+       "line.shape": 3,
        "tone": 0
       },
       "narrow": {
        "line.x": 0,
        "line.y": 0.46,
        "line.s": 0.667,
-       "line.ry": -0.064,
+       "line.ry": 0.064,
        "line.rx": 0,
        "line.alpha": 0.08
       }

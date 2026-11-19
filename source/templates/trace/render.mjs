@@ -1,6 +1,6 @@
 /*
  * trace: a multi-page site drawn by one line of light. render() writes every page as its own HTML file; each page's
- * sections are typed blocks (hero, tokenize, lens, pillars, steps, facts, safes, cards, timeline, team, faq, params, prose,
+ * sections are typed blocks (hero, tokenize, portal, lens, pillars, steps, facts, safes, cards, timeline, team, faq, params, prose,
  * contact, cta) and each section names the world's tone (blue | paper) and where the line sits (stage).
  * The line's shapes and scroll keys per page live in experience.pages[page].
  */
@@ -70,6 +70,27 @@ const KINDS = {
       </div>
       ${s.counter ? `<div class="tok-count" aria-hidden="true"><b data-tok-n>0</b><span>${esc(s.counter)}</span></div>` : ''}
       ${s.credit ? `<p class="credit">${md(s.credit)}</p>` : ''}
+    </div>`;
+  },
+  // one great round window onto a place, with the next place waiting small at its centre. A ring round the small
+  // window fills; when it closes the page flies through into the next place (no extra scroll). app.js: portal()
+  portal(s, c) {
+    const it = s.items, n = it.length, img = i => `url(assets/${esc(it[(i + n) % n].img)})`;
+    return `<div class="pt" data-pt data-items="${esc(JSON.stringify(it.map(x => ({ t: x.title, b: x.body, img: 'assets/' + x.img, credit: x.credit }))))}">
+      <div class="pt-copy">${head(s)}
+        <div class="pt-now" aria-live="polite"><span class="pt-n"><b data-pt-n>01</b><small> / ${String(n).padStart(2, '0')}</small></span>
+          <b class="pt-t" data-pt-t>${esc(it[0].title)}</b><p data-pt-b>${md(it[0].body)}</p></div>
+  <div class="pt-strip">${it.map((x, i) => `<button type="button" data-pt-to="${i}" style="background-image:${img(i)}"${i ? '' : ' aria-current="true"'} aria-label="${esc(x.title)}"></button>`).join('')}
+        <button type="button" class="pt-pause" data-pt-pause aria-label="Pause the slideshow" aria-pressed="false"><i></i><i></i></button></div>
+        ${ctas(s.ctas, c)}${s.note ? `<p class="note">${md(s.note)}</p>` : ''}
+  <p class="credit" data-pt-credit>${md(it[0].credit || '')}</p>
+      </div>
+      <div class="pt-win" data-pt-win>
+        <div class="pt-layer" data-pt-layer style="background-image:${img(0)}">
+          <button type="button" class="pt-next" data-pt-go style="background-image:${img(1)}" aria-label="Next place: ${esc(it[1 % n].title)}"><span class="pt-next2" style="background-image:${img(2)}"></span></button>
+          <svg class="pt-ring" viewBox="0 0 100 100" aria-hidden="true"><circle class="pt-track" cx="50" cy="50" r="48"/><circle class="pt-fill" data-pt-fill cx="50" cy="50" r="48" pathLength="100"/></svg>
+        </div>
+      </div>
     </div>`;
   },
   // round windows onto removal projects, threaded on the line (scene/discs.js); their captions are tags

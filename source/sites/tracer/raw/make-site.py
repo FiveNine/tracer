@@ -50,7 +50,7 @@ def pose(stage, shape, k, tone):
         d = {'line.x': 0, 'line.y': -.82, 'line.s': 1, 'line.alpha': .45, 'pulse.amt': .35, 'line.ry': 0, 'line.rx': 0}
         n = {'line.y': -.9}
     else:                    # hidden
-        d = {'line.x': 0, 'line.y': -.82, 'line.s': 1, 'line.alpha': 0, 'pulse.amt': 0}
+        d = {'line.alpha': 0, 'pulse.amt': 0}   # it only fades where it is (moving it would drag the tokenize boundary as that chapter leaves)
         n = {}
     d.update({'line.shape': k, 'tone': t})
     return d, n
@@ -118,10 +118,9 @@ pages, xpages = {}, {}
 
 # ---------------------------------------------------------------- home
 # The line is the hero's wordmark, then the light that tokenizes a real removal project as it sweeps across it, then a
-# thread through windows onto removal projects; it steps back for the reading chapters and returns to draw Tracy.
+# fly-through of removal places (no line there); it steps back for the reading chapters and returns to draw Tracy.
 shapes = ['word',
           {'kind': 'sweep', 'photo': 'photos/biochar.webp', 'from': .78, 'to': .02, 'nFrom': .8, 'nTo': -.55},
-          {'kind': 'thread', 'photos': ['photos/mangrove-disc.webp', 'photos/forest-disc.webp', 'photos/basalt-disc.webp', 'photos/biochar-disc.webp']},
           {'kind': 'tracyArt', 'fill': 'tracyFill'}, 'mark']
 pages['index'], xpages['index'] = page(
     'Tracer: carbon removal, traced on-chain', 'Tracer is a real-world asset project on Base. TRCR holders govern the Carrot protocol, where verified carbon removal is issued, traded and retired on-chain.',
@@ -138,40 +137,46 @@ pages['index'], xpages['index'] = page(
                 {'title': 'Retired in a Rabbit', 'body': 'Send CRRT into a Rabbit and it is retired for good, with its beneficiary on record.'}],
             counter='grams on-chain · 1,000,000 = one tonne',
             credit='Photo: biochar, Tim Brunauer / GIZ, [CC BY-SA 4.0](https://commons.wikimedia.org/wiki/File:Charged_and_inoculated_biochar_ready_for_soil_application.jpg)'),
-        sec('projects', 'lens', 'blue', 'right', 2, full=True, eyebrow='Real-world assets', title='Every tonne has a place.',
+        sec('projects', 'portal', 'blue', 'hidden', 1, full=True, eyebrow='Real-world assets', title='Every tonne has a place.',
             lede=['Each CRRT comes from a real removal project you can look into: where it is, who endorsed it, how much has been issued and how much is retired.'],
-            ctas=[{'label': 'Explore the ecosystem', 'href': 'ecosystem'}],
-            note='The kinds of removal behind CRRT. Endorsed projects are listed on the marketplace at launch.',
-            credit='Photos: Priyaflorenceshah, Sidoine Mbogni, Tim Brunauer / GIZ (CC BY-SA 4.0); Andy Waddington (CC BY-SA 2.0). Wikimedia Commons.'),
-        sec('token', 'facts', 'paper', 'hidden', 2, eyebrow='The token', title='TRCR, at a glance.', lede=['The airdrop and the QuickSwap launch are next. The token guide has the contract, how to buy and where every token sits.'], items=[
+            items=[
+                {'title': 'Mangroves', 'img': 'photos/mangrove-portal.webp', 'body': 'Coastal forests lock carbon into their roots and the mud beneath them.',
+                 'credit': 'Photo: Priyaflorenceshah, [CC BY-SA 4.0](https://commons.wikimedia.org/wiki/File:Mangrove_forests_of_Mumbai.jpg)'},
+                {'title': 'Reforestation', 'img': 'photos/forest-portal.webp', 'body': 'Trees planted on cleared land draw carbon down as they grow.',
+                 'credit': 'Photo: Sidoine Mbogni, [CC BY-SA 4.0](https://commons.wikimedia.org/wiki/File:Vue_a%C3%A9rienne_de_la_for%C3%AAt_tropicale_%C3%A0_Bodiman,_Yabassi,_Cameroun.jpg)'},
+                {'title': 'Enhanced weathering', 'img': 'photos/basalt-portal.webp', 'body': 'Crushed basalt spread on fields binds CO₂ into stable minerals as it weathers.',
+                 'credit': 'Photo: Andy Waddington, [CC BY-SA 2.0](https://commons.wikimedia.org/wiki/File:Basalt_columns,_west_coast_of_Kerrera_-_geograph.org.uk_-_1754060.jpg)'},
+                {'title': 'Biochar', 'img': 'photos/biochar-portal.webp', 'body': 'Plant waste heated without oxygen becomes a stable char that holds carbon in soil for centuries.',
+                 'credit': 'Photo: Tim Brunauer / GIZ, [CC BY-SA 4.0](https://commons.wikimedia.org/wiki/File:Charged_and_inoculated_biochar_ready_for_soil_application.jpg)'}],
+            ctas=[{'label': 'Explore the ecosystem', 'href': 'ecosystem', 'ghost': True}],
+            note='The kinds of removal behind CRRT. Endorsed projects are listed on the marketplace at launch.'),
+        sec('token', 'facts', 'paper', 'hidden', 1, eyebrow='The token', title='TRCR, at a glance.', lede=['The airdrop and the QuickSwap launch are next. The token guide has the contract, how to buy and where every token sits.'], items=[
             {'k': 'Network', 'v': 'Base'}, {'k': 'Symbol', 'v': 'TRCR'},
             {'k': 'Supply', 'v': '12.5 billion', 'note': 'Minted once. No minting, ever. ' + TBC},
             {'k': 'Held in', 'v': 'Five Safes', 'note': 'Foundation, team, ecosystem, treasury, early backers.'}],
             ctas=[{'label': 'Token guide', 'href': 'token'}, {'label': 'Buy on QuickSwap', 'href': '@buy', 'ghost': True}]),
-        sec('governance', 'steps', 'blue', 'hidden', 2, eyebrow='Governance', title='Hold. Delegate. Vote. Execute.', items=[
+        sec('governance', 'steps', 'blue', 'hidden', 1, eyebrow='Governance', title='Hold. Delegate. Vote. Execute.', items=[
             {'title': 'Hold TRCR', 'body': 'Your tokens are your voting weight.'},
             {'title': 'Delegate', 'body': 'To yourself or someone you trust. Votes only count once delegated.'},
             {'title': 'Vote or propose', 'body': 'On Endorsers, payment tokens, the marketplace and upgrades.'},
             {'title': 'The Timelock executes', 'body': 'Passed proposals run on-chain after a delay. No back door.'}],
             ctas=[{'label': 'How governance works', 'href': 'governance', 'ghost': True}]),
-        sec('base', 'cta', 'blue', 'hidden', 2, eyebrow='Built on Base', title='Ethereum security, at cents a move.', lede=['Base is an Ethereum layer 2 incubated by Coinbase. New to it? The guide takes you from no wallet to holding TRCR in six steps.'],
+        sec('base', 'cta', 'blue', 'hidden', 1, eyebrow='Built on Base', title='Ethereum security, at cents a move.', lede=['Base is an Ethereum layer 2 incubated by Coinbase. New to it? The guide takes you from no wallet to holding TRCR in six steps.'],
             items=[], ctas=[{'label': 'How to Base', 'href': 'base'}]),
-        sec('ecosystem', 'cards', 'paper', 'hidden', 2, eyebrow='Ecosystem', title='Where to go next.', items=[
+        sec('ecosystem', 'cards', 'paper', 'hidden', 1, eyebrow='Ecosystem', title='Where to go next.', items=[
             {'title': 'Marketplace', 'body': 'Buy CRRT from endorsed projects.', 'status': 'Coming soon', 'href': '@carbonPioneers'},
             {'title': 'Carbon Impact Scan', 'body': 'Find your footprint, then remove it.', 'status': 'Coming soon', 'href': '@carbonPioneers'},
             {'title': 'Academy', 'body': 'Courses on buying carbon removal.', 'status': 'Later', 'href': '@carbonPioneers'},
             {'title': 'News', 'body': 'Carbon removal news and market insight.', 'status': 'Live', 'href': '@carbonPioneers'}],
             note='These live on Carbon Pioneers, the carbon side of the project.'),
-        sec('roadmap', 'cta', 'paper', 'hidden', 2, eyebrow='Roadmap', title='Built, tested, and next up.', lede=['The protocol is built and tested on testnet. Next: the airdrop, the QuickSwap launch and mainnet on Base.'], items=[],
+        sec('roadmap', 'cta', 'paper', 'hidden', 1, eyebrow='Roadmap', title='Built, tested, and next up.', lede=['The protocol is built and tested on testnet. Next: the airdrop, the QuickSwap launch and mainnet on Base.'], items=[],
             ctas=[{'label': 'See the roadmap', 'href': 'roadmap', 'ghost': True}]),
-        sec('faq', 'faq', 'paper', 'right', 3, full=True, eyebrow='FAQ · Ask Tracy', title='Questions? Ask Tracy.',
+        sec('faq', 'faq', 'paper', 'right', 2, full=True, eyebrow='FAQ · Ask Tracy', title='Questions? Ask Tracy.',
             lede=['Tracy is Tracer\'s guide, in the corner of every page. The questions people ask most are right here.'], limit=5, askTracy=True,
             ctas=[{'label': 'All questions', 'href': 'faq', 'ghost': True}]),
-        sec('join', 'cta', 'blue', 'right', 4, full=True, eyebrow='Take part', title='Hold it. Vote with it. Trace it.', ctas=[{'label': 'Buy TRCR', 'href': '@buy'}, {'label': 'Governance', 'href': 'governance', 'ghost': True}], chip=True),
+        sec('join', 'cta', 'blue', 'right', 3, full=True, eyebrow='Take part', title='Hold it. Vote with it. Trace it.', ctas=[{'label': 'Buy TRCR', 'href': '@buy'}, {'label': 'Governance', 'href': 'governance', 'ghost': True}], chip=True),
     ],
-    tags=[{'id': 'd1l', 'k': 2, 'label': 'Mangroves', 'pos': 'down'}, {'id': 'd2l', 'k': 2, 'label': 'Reforestation', 'pos': 'down'},
-          {'id': 'd3l', 'k': 2, 'label': 'Enhanced weathering', 'pos': 'down'}, {'id': 'd4l', 'k': 2, 'label': 'Biochar', 'pos': 'down'}],
-    )   # Tracy (k 3) is drawn by the line, then the line fills her blue areas (tracyFill)
+    )   # Tracy (k 2) is drawn by the line, then the line fills her blue areas (tracyFill)
 
 # ---------------------------------------------------------------- token
 shapes = ['ring', 'wave', 'mark', 'ring', 'wave']

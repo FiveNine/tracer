@@ -233,7 +233,58 @@ function ui() {
     if (bad.length) { msg.textContent = 'Please fill in ' + bad.map(i => i.name).join(', ') + '.'; msg.className = 'form-msg err'; bad[0].focus(); return; }
     msg.textContent = (C.forms && C.forms.sent) || 'Thanks, we\'ll get back to you.'; msg.className = 'form-msg ok'; f.reset();
   }));
-  tracy();
+  tracy(); portal();
+}
+
+/* ---------- the places: fly through one round window into the next ---------- */
+// The section never adds scroll: a ring round the small window fills while the place is shown; when it closes, the big
+// window zooms into the small one until it fills the frame, then quietly becomes it. Hover, scrolling it away, a hidden
+// tab or the pause button hold the ring; a click on the small window or a thumbnail flies there at once.
+function portal() {
+  const el = document.querySelector('[data-pt]'); if (!el) return;
+  const items = JSON.parse(el.dataset.items), n = items.length;
+  const win = el.querySelector('[data-pt-win]'), layer = el.querySelector('[data-pt-layer]'), next = el.querySelector('[data-pt-go]'), next2 = next.querySelector('span');
+  const fill = el.querySelector('[data-pt-fill]'), now = el.querySelector('.pt-now'), strip = [...el.querySelectorAll('[data-pt-to]')], pause = el.querySelector('[data-pt-pause]');
+  const T = { n: el.querySelector('[data-pt-n]'), t: el.querySelector('[data-pt-t]'), b: el.querySelector('[data-pt-b]'), credit: el.querySelector('[data-pt-credit]') };
+  const url = i => `url(${items[((i % n) + n) % n].img})`;
+  items.forEach(it => { const im = new Image(); im.src = it.img; im.decode && im.decode().catch(() => {}); });
+  const md = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+  let i = 0, flying = false, hover = false, seen = false, paused = !!app.reduced;
+  const held = () => el.classList.toggle('is-held', paused || hover || !seen || document.hidden);
+  const run = () => { el.classList.remove('is-run'); void fill.getBoundingClientRect(); el.classList.add('is-run'); };
+  function fly(to) {
+    if (flying || to === i) return;
+    flying = true;
+    // whatever comes next waits in the small window, so every change is the same flight inwards
+    next.style.backgroundImage = url(to); next2.style.backgroundImage = url(to + 1);
+    el.classList.remove('is-run'); el.classList.add('is-flying');
+    now.classList.add('is-out');
+    setTimeout(() => {
+      const it = items[to];
+      T.n.textContent = String(to + 1).padStart(2, '0'); T.t.textContent = it.t; T.b.innerHTML = md(it.b); T.credit.innerHTML = md(it.credit || '');
+      next.setAttribute('aria-label', 'Next place: ' + items[(to + 1) % n].t);
+      strip.forEach((b, k) => b.toggleAttribute('aria-current', k === to));
+      now.classList.remove('is-out');
+    }, app.reduced ? 0 : 650);
+    const land = () => {
+      layer.style.backgroundImage = url(to); next.style.backgroundImage = url(to + 1); next2.style.backgroundImage = url(to + 2);
+      i = to; flying = false; el.classList.remove('is-flying'); run();
+    };
+    if (app.reduced) { land(); return; }
+    const F = win.offsetWidth / next.offsetWidth;
+    const a = layer.animate([{ transform: 'scale(1)' }, { transform: `scale(${F})` }], { duration: 1500, easing: 'cubic-bezier(.62,0,.18,1)' });
+    a.onfinish = () => { land(); a.cancel(); };
+  }
+  fill.addEventListener('animationend', () => fly((i + 1) % n));
+  next.addEventListener('click', () => fly((i + 1) % n));
+  strip.forEach((b, k) => b.addEventListener('click', () => fly(k)));
+  pause.addEventListener('click', () => { paused = !paused; pause.setAttribute('aria-pressed', String(paused)); pause.setAttribute('aria-label', paused ? 'Play the slideshow' : 'Pause the slideshow'); held(); });
+  win.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') { hover = true; held(); } });
+  win.addEventListener('pointerleave', () => { hover = false; held(); });
+  new IntersectionObserver(([e]) => { seen = e.isIntersecting; held(); }, { threshold: 0.4 }).observe(el);
+  document.addEventListener('visibilitychange', held);
+  held(); run();
+  window.__portal = { fly, get i() { return i; } };   // for stills and QA
 }
 
 function tracy() {
