@@ -93,6 +93,15 @@ export async function createTokenize(app, line, o) {
   app.add((t, dt) => {
     const r = stage.getBoundingClientRect(), H = app.height;
     const live = r.bottom > 0 && r.top < H && r.width > 2;
+    // the sweep belongs to this chapter: as the line becomes it, the line is held to the chapter's bounds (so it
+    // arrives as a stroke from the section's top edge to its bottom, and leaves with it when the page scrolls on)
+    { const dpr = app.renderer.getPixelRatio(), W = app.width;
+      const d = Math.abs(P.get('line.shape') - o.k), k = d >= 1 ? 0 : d <= 0.15 ? 1 : 1 - (d - 0.15) / 0.85, e = k * k * (3 - 2 * k);
+      const m = 200;   // the loose frame: a little past the screen, so nothing is cut while the line is elsewhere
+      const lerp = (a, b) => a + (b - a) * e;
+      line.uniforms.uClip.value.set(lerp(-m, r.left) * dpr, lerp(-m, H - r.bottom) * dpr, lerp(W + m, r.right) * dpr, lerp(H + m, H - r.top) * dpr);
+      if (e <= 0) line.uniforms.uClip.value.set(-1e5, -1e5, 1e5, 1e5);
+    }
     mesh.visible = live;
     if (!live) return;
     const dpr = app.renderer.getPixelRatio();

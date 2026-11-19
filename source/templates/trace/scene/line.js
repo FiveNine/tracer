@@ -76,10 +76,14 @@ const VERT = /* glsl */`
 
 const FRAG = /* glsl */`
   uniform vec3 uColor, uHot, uBg;
-  uniform float uAlpha, uHalo, uDraw, uPulse, uPulseAmt, uClickU, uClickAge, uTime;
+  uniform float uAlpha, uHalo, uDraw, uPulse, uPulseAmt, uClickU, uClickAge, uTime, uDpr;
+  uniform vec4 uClip;      // drawing-buffer px (x0, y0, x1, y1), y up: the line shows only inside, feathered top and bottom
   varying float vSide, vU, vVis, vW;
   void main() {
     if (vU > uDraw + .002) discard;
+    vec2 f = gl_FragCoord.xy;
+    float clip = step(uClip.x, f.x) * step(f.x, uClip.z) * smoothstep(uClip.y, uClip.y + 36. * uDpr, f.y) * smoothstep(uClip.w, uClip.w - 36. * uDpr, f.y);
+    if (clip < .002) discard;
     float e = abs(vSide);
     float body;
     if (uHalo > 0.) body = exp(-e * e * 3.) * uHalo;
@@ -95,7 +99,7 @@ const FRAG = /* glsl */`
     float hot = clamp(sig + touch + head, 0., 1.6);
     vec3 col = mix(uColor, uHot, clamp(hot, 0., 1.));
     // the pulse brightens what is drawn; it never reveals the hidden jumps between strokes
-    float a = body * uAlpha * min(1., vVis * (1. + hot * 1.4)) * step(.001, vVis);
+    float a = body * uAlpha * clip * min(1., vVis * (1. + hot * 1.4)) * step(.001, vVis);
     if (a < .003) discard;
     // the final colour over the ground; blended with MAX (blue world) or MIN (paper world), so where the line crosses or
     // retraces itself, or the halo meets the core, the brightest value wins instead of the layers adding up
@@ -131,7 +135,7 @@ export function createLine(app, o) {
   const common = {
     uShapes: { value: tex }, uN: { value: N }, uK: { value: K }, uShape: { value: 0 }, uStagger: { value: 0.7 },
     uTime: { value: 0 }, uNoise: { value: 0.3 }, uRes: { value: new THREE.Vector2(1, 1) }, uDpr: { value: 1 },
-    uPointer: { value: new THREE.Vector2(-1e4, -1e4) }, uPush: { value: 0 },
+    uPointer: { value: new THREE.Vector2(-1e4, -1e4) }, uPush: { value: 0 }, uClip: { value: new THREE.Vector4(-1e5, -1e5, 1e5, 1e5) },
     uColor: { value: new THREE.Color() }, uHot: { value: new THREE.Color() }, uDraw: { value: 1 },
     uPulse: { value: 0 }, uPulseAmt: { value: 0 }, uClickU: { value: 0 }, uClickAge: { value: -1 }, uBg: { value: new THREE.Color() }
   };
