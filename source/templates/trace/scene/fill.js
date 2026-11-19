@@ -51,11 +51,13 @@ export function createFill(app, line, o) {
   const white = new THREE.Color('#ffffff'), blue = new THREE.Color(o.blue || '#0657ff');
   let since = -1, level = 0, target = 0;
   app.add((t, dt) => {
-    const near = Math.max(0, 1 - Math.abs(P.get('line.shape') - o.k) * 7) * (P.get('line.draw') > 0.98 ? 1 : 0);
-    // fill once the line has settled on the shape for a moment; drain as soon as it starts to leave
-    if (near > 0.985) { if (since < 0) since = t; } else since = -1;
+    // fill once the line has (all but) become the shape and held it for a moment; drain once it clearly moves on.
+    // The thresholds are loose on purpose: the morph eases in slowly at the very end, and a reader who stops scrolling
+    // between two chapters leaves the line a few hundredths short of the shape, which must still count as arrived.
+    const d = Math.abs(P.get('line.shape') - o.k), drawn = P.get('line.draw') > 0.98;
+    if (d < 0.05 && drawn) { if (since < 0) since = t; } else since = -1;
     if (since >= 0 && t - since > (app.reduced ? 0 : 0.35)) target = 1;
-    if (near < 0.9) target = 0;
+    if (d > 0.14 || !drawn) target = 0;
     const rate = target > level ? 0.85 : 3.5;   // fills in ~1.2 s, drains fast
     level = app.reduced ? target : Math.max(0, Math.min(1, level + Math.sign(target - level) * Math.min(Math.abs(target - level), dt * rate)));
     const eased = level * level * (3 - 2 * level);

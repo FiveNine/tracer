@@ -62,7 +62,7 @@ def keys_of(sections, shapes, cta_tone='blue'):
         d, n = pose(s['_stage'], shapes[s['_k']], s['_k'], s.get('tone', 'paper'))
         k = {'at': '#' + s['id'], 'set': d}
         if n: k['narrow'] = n
-        if i > 0: k.update({'shift': '-18vh', 'hold': .45})   # arrives as the section settles into view
+        if i > 0: k.update({'shift': '-18vh', 'hold': s.get('_hold', .45)})   # arrives as the section settles into view; _hold: how long the previous pose stays
         out.append(k)
         sh = shapes[s['_k']]
         if s['_stage'] == 'sweep':
@@ -85,7 +85,7 @@ def sec(id, kind_, tone, stage, k, **kw):
 def page(title, description, shapes, sections, tags=(), art=()):
     keys = keys_of(sections, shapes)
     for s in sections:
-        s.pop('_stage'); s.pop('_k')
+        s.pop('_stage'); s.pop('_k'); s.pop('_hold', None)
     return {'title': title, 'description': description, 'sections': sections, 'tags': list(tags), 'art': list(art)}, {'shapes': shapes, 'keys': keys}
 
 
@@ -178,7 +178,7 @@ pages['index'], xpages['index'] = page(
         sec('faq', 'faq', 'paper', 'right', 2, full=True, eyebrow='FAQ · Ask Tracy', title='Questions? Ask Tracy.',
             lede=['Tracy is Tracer\'s guide, in the corner of every page. The questions people ask most are right here.'], limit=5, askTracy=True,
             ctas=[{'label': 'All questions', 'href': 'faq', 'ghost': True}]),
-        sec('join', 'cta', 'blue', 'right', 3, full=True, eyebrow='Take part', title='Hold it. Vote with it. Trace it.', ctas=[{'label': 'Buy TRCR', 'href': '@buy'}, {'label': 'Governance', 'href': 'governance', 'ghost': True}], chip=True),
+        sec('join', 'cta', 'blue', 'right', 3, full=True, _hold=.85, eyebrow='Take part', title='Hold it. Vote with it. Trace it.', ctas=[{'label': 'Buy TRCR', 'href': '@buy'}, {'label': 'Governance', 'href': 'governance', 'ghost': True}], chip=True),
     ],
     )   # Tracy (k 2) is drawn by the line, then the line fills her blue areas (tracyFill)
 
