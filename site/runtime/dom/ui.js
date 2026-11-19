@@ -50,14 +50,17 @@ export function cursor(app, o = {}) {
     el.classList.toggle('is-link', !!t);
     const txt = t && t.getAttribute('data-cursor');
     el.classList.toggle('has-label', !!txt); if (label) label.textContent = txt || '';
-    mag = t && t.hasAttribute('data-magnetic') ? t : null;
+    const m = t && t.hasAttribute('data-magnetic') ? t : null;
+    if (mag && mag !== m) mag.style.transform = '';   // the one left behind goes home
+    mag = m;
   });
   addEventListener('pointerdown', () => el.classList.add('is-down'));
   addEventListener('pointerup', () => el.classList.remove('is-down'));
   app.add((t, dt) => {
     let tx = app.input.x, ty = app.input.y;
     if (mag) { const r = mag.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2; tx = cx + (tx - cx) * 0.35; ty = cy + (ty - cy) * 0.35;
-      mag.style.transform = `translate(${((app.input.x - cx) * 0.18).toFixed(1)}px, ${((app.input.y - cy) * 0.18).toFixed(1)}px)`; }
+      const cl = v => Math.max(-6, Math.min(6, v));   // a nudge, never more than a few px out of place
+      mag.style.transform = `translate(${cl((app.input.x - cx) * 0.18).toFixed(1)}px, ${cl((app.input.y - cy) * 0.18).toFixed(1)}px)`; }
     const k = 1 - Math.exp(-dt * 20); x += (tx - x) * k; y += (ty - y) * k;
     s += ((1 + Math.min(0.6, app.input.speed / 4000)) - s) * k;
     el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`;
