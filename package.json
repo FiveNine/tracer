@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "description": "The Tracer website: a static multi-page site, with the home page's specimen drawn live in WebGL (three.js).",
   "type": "module",
-  "engines": { "node": ">=20" },
+  "engines": { "node": "22.x" },
   "scripts": {
     "build": "node tools/build.mjs",
     "serve": "node tools/serve.mjs",
