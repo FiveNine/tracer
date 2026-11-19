@@ -190,6 +190,29 @@ function carry() {
   }, 9);
 }
 
+/* ---------- a shape that is drawn, not morphed into ---------- */
+// For a shape with { drawIn: '#section' } the line becomes it out of sight (the chapters before it keep the line hidden
+// and already in that shape), and when the section comes up the line traces it from the first point to the last, like
+// the intro. Scrolling back above the section and down again draws it again.
+function drawIn() {
+  if (!line) return;
+  XP.shapes.forEach(sp => {
+    const el = sp && sp.drawIn && document.querySelector(sp.drawIn); if (!el) return;
+    const inView = () => { const r = el.getBoundingClientRect(); return r.top < app.height * 0.72 && r.bottom > app.height * 0.25; };
+    let state = inView() ? 'drawn' : 'idle', t0 = 0;   // already on screen at load: the intro draws it
+    app.add(t => {
+      const r = el.getBoundingClientRect();
+      if (state === 'idle' && inView()) { state = 'drawing'; t0 = t; P.set('line.draw', 0, true); }
+      if (state === 'drawing') {
+        const k = Math.min(1, (t - t0) / (app.reduced ? 0.001 : 2.4)), e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+        P.set('line.draw', e, true);
+        if (k >= 1) state = 'drawn';
+      }
+      if (state !== 'idle' && r.top > app.height) { state = 'idle'; P.set('line.draw', 1, true); }   // back above it: ready to draw again
+    }, 4);
+  });
+}
+
 /* ---------- touch the line ---------- */
 function touch() {
   if (!line) return;
@@ -465,7 +488,7 @@ createChoreo(app, keys);
 // the first key is where the page starts (so the intro lands on it)
 if (keys[0]) for (const [n, v] of Object.entries(keys[0].set)) if (P.has(n)) P.set(n, v, true);
 P.set('tone.view', P.get('tone') > 0.5 ? 1 : 0, true);
-labels(); touch(); occlusion(); carry();
+labels(); touch(); occlusion(); carry(); drawIn();
 window.__trace = { app, line };   // for stills, QA and editors
 if (app.gl) { await app.idle(); app.renderer.compile(app.scene, app.camera); }
 shaders(1);

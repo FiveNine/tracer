@@ -1819,7 +1819,8 @@
      },
      {
       "kind": "tracyArt",
-      "fill": "tracyFill"
+      "fill": "tracyFill",
+      "drawIn": "#faq"
      },
      "mark"
     ],
@@ -1869,66 +1870,138 @@
       "set": {
        "line.alpha": 0,
        "pulse.amt": 0,
-       "line.shape": 0,
-       "tone": 0
+       "line.shape": 2,
+       "tone": 0,
+       "line.x": 0.5,
+       "line.y": 0,
+       "line.s": 1.0,
+       "line.rx": 0,
+       "line.ry": 0
       },
       "shift": "-18vh",
-      "hold": 0.45
+      "hold": 0.45,
+      "narrow": {
+       "line.x": 0,
+       "line.y": 0.46,
+       "line.s": 0.556,
+       "line.rx": 0,
+       "line.ry": 0.0
+      }
      },
      {
       "at": "#token",
       "set": {
        "line.alpha": 0,
        "pulse.amt": 0,
-       "line.shape": 0,
-       "tone": 1
+       "line.shape": 2,
+       "tone": 1,
+       "line.x": 0.5,
+       "line.y": 0,
+       "line.s": 1.0,
+       "line.rx": 0,
+       "line.ry": 0
       },
       "shift": "-18vh",
-      "hold": 0.45
+      "hold": 0.45,
+      "narrow": {
+       "line.x": 0,
+       "line.y": 0.46,
+       "line.s": 0.556,
+       "line.rx": 0,
+       "line.ry": 0.0
+      }
      },
      {
       "at": "#governance",
       "set": {
        "line.alpha": 0,
        "pulse.amt": 0,
-       "line.shape": 0,
-       "tone": 1
+       "line.shape": 2,
+       "tone": 1,
+       "line.x": 0.5,
+       "line.y": 0,
+       "line.s": 1.0,
+       "line.rx": 0,
+       "line.ry": 0
       },
       "shift": "-18vh",
-      "hold": 0.45
+      "hold": 0.45,
+      "narrow": {
+       "line.x": 0,
+       "line.y": 0.46,
+       "line.s": 0.556,
+       "line.rx": 0,
+       "line.ry": 0.0
+      }
      },
      {
       "at": "#base",
       "set": {
        "line.alpha": 0,
        "pulse.amt": 0,
-       "line.shape": 0,
-       "tone": 0
+       "line.shape": 2,
+       "tone": 0,
+       "line.x": 0.5,
+       "line.y": 0,
+       "line.s": 1.0,
+       "line.rx": 0,
+       "line.ry": 0
       },
       "shift": "-18vh",
-      "hold": 0.45
+      "hold": 0.45,
+      "narrow": {
+       "line.x": 0,
+       "line.y": 0.46,
+       "line.s": 0.556,
+       "line.rx": 0,
+       "line.ry": 0.0
+      }
      },
      {
       "at": "#ecosystem",
       "set": {
        "line.alpha": 0,
        "pulse.amt": 0,
-       "line.shape": 0,
-       "tone": 1
+       "line.shape": 2,
+       "tone": 1,
+       "line.x": 0.5,
+       "line.y": 0,
+       "line.s": 1.0,
+       "line.rx": 0,
+       "line.ry": 0
       },
       "shift": "-18vh",
-      "hold": 0.45
+      "hold": 0.45,
+      "narrow": {
+       "line.x": 0,
+       "line.y": 0.46,
+       "line.s": 0.556,
+       "line.rx": 0,
+       "line.ry": 0.0
+      }
      },
      {
       "at": "#roadmap",
       "set": {
        "line.alpha": 0,
        "pulse.amt": 0,
-       "line.shape": 0,
-       "tone": 1
+       "line.shape": 2,
+       "tone": 1,
+       "line.x": 0.5,
+       "line.y": 0,
+       "line.s": 1.0,
+       "line.rx": 0,
+       "line.ry": 0
       },
       "shift": "-18vh",
-      "hold": 0.45
+      "hold": 0.45,
+      "narrow": {
+       "line.x": 0,
+       "line.y": 0.46,
+       "line.s": 0.556,
+       "line.rx": 0,
+       "line.ry": 0.0
+      }
      },
      {
       "at": "#faq",
