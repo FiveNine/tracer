@@ -236,55 +236,69 @@ function ui() {
   tracy(); portal();
 }
 
-/* ---------- the places: fly through one round window into the next ---------- */
-// The section never adds scroll: a ring round the small window fills while the place is shown; when it closes, the big
-// window zooms into the small one until it fills the frame, then quietly becomes it. Hover, scrolling it away, a hidden
-// tab or the pause button hold the ring; a click on the small window or a thumbnail flies there at once.
+/* ---------- the places: full round photos that slide in from the right ---------- */
+// The section never adds scroll. One place is shown large, the next peeks in at the screen's right edge; a ring drawn
+// round the large one fills while it is shown, and when it closes the next slides in to take its place. Hover,
+// scrolling it away, a hidden tab or the pause button hold the ring; the peeking circle or a thumbnail go at once.
 function portal() {
   const el = document.querySelector('[data-pt]'); if (!el) return;
   const items = JSON.parse(el.dataset.items), n = items.length;
-  const win = el.querySelector('[data-pt-win]'), layer = el.querySelector('[data-pt-layer]'), next = el.querySelector('[data-pt-go]'), next2 = next.querySelector('span');
+  const stage = el.querySelector('[data-pt-stage]'), cs = [...el.querySelectorAll('[data-pt-c]')], ring = el.querySelector('[data-pt-ring]');
   const fill = el.querySelector('[data-pt-fill]'), now = el.querySelector('.pt-now'), strip = [...el.querySelectorAll('[data-pt-to]')], pause = el.querySelector('[data-pt-pause]');
   const T = { n: el.querySelector('[data-pt-n]'), t: el.querySelector('[data-pt-t]'), b: el.querySelector('[data-pt-b]'), credit: el.querySelector('[data-pt-credit]') };
-  const url = i => `url(${items[((i % n) + n) % n].img})`;
-  items.forEach(it => { const im = new Image(); im.src = it.img; im.decode && im.decode().catch(() => {}); });
   const md = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
-  let i = 0, flying = false, hover = false, seen = false, paused = !!app.reduced;
+  let i = 0, moving = false, hover = false, seen = false, paused = !!app.reduced;
+  const off = k => { let d = ((k - i) % n + n) % n; return d === n - 1 ? -1 : d; };   // -1: just left, 0: shown, 1: peeking, 2+: waiting off screen
+  const last = cs.map(() => 0);
+  // where each slot sits, from the stage's size: shown large left of centre, the next half off the right edge
+  function layout(instant) {
+    const W = stage.offsetWidth, H = stage.offsetHeight, D = cs[0].offsetWidth, narrow = W < 700;
+    const cx = narrow ? W / 2 : W * 0.44, cy = H / 2;
+    const slot = d => d === 0 ? [cx, cy, 1, 1] : d === 1 ? [narrow ? W + D * 0.12 : W + D * 0.04, cy + (narrow ? 0 : D * 0.12), narrow ? 0.42 : 0.5, 1]
+      : d === -1 ? [cx - D * 0.55, cy, 0.7, 0] : [W + D * 1.2, cy, 0.4, 1];
+    cs.forEach((c, k) => {
+      const d = off(k), [x, y, sc, o] = slot(d);
+      // a circle that wraps round from the far left to the right goes there unseen
+      const jump = instant || (last[k] < 0 && d > 0) || (last[k] > 1 && d > 1);
+      c.classList.toggle('no-anim', jump);
+      c.style.transform = `translate(${(x - D / 2).toFixed(1)}px, ${(y - D / 2).toFixed(1)}px) scale(${sc})`;
+      c.style.opacity = o; c.classList.toggle('is-on', d === 0); c.classList.toggle('is-peek', d === 1);
+      c.tabIndex = d === 1 ? 0 : -1;
+      if (d === 1) c.setAttribute('aria-label', 'Next place: ' + items[k].t);
+      last[k] = d;
+    });
+    ring.style.transform = `translate(${(cx - D / 2).toFixed(1)}px, ${(cy - D / 2).toFixed(1)}px)`;
+    void stage.offsetWidth;   // commit the unseen jumps before transitions come back on
+    requestAnimationFrame(() => cs.forEach(c => c.classList.remove('no-anim')));
+  }
   const held = () => el.classList.toggle('is-held', paused || hover || !seen || document.hidden);
   const run = () => { el.classList.remove('is-run'); void fill.getBoundingClientRect(); el.classList.add('is-run'); };
-  function fly(to) {
-    if (flying || to === i) return;
-    flying = true;
-    // whatever comes next waits in the small window, so every change is the same flight inwards
-    next.style.backgroundImage = url(to); next2.style.backgroundImage = url(to + 1);
-    el.classList.remove('is-run'); el.classList.add('is-flying');
+  function go(to) {
+    if (moving || to === i) return;
+    moving = true; i = to;
+    el.classList.remove('is-run'); el.classList.add('is-moving');
     now.classList.add('is-out');
+    layout(false);
     setTimeout(() => {
       const it = items[to];
       T.n.textContent = String(to + 1).padStart(2, '0'); T.t.textContent = it.t; T.b.innerHTML = md(it.b); T.credit.innerHTML = md(it.credit || '');
-      next.setAttribute('aria-label', 'Next place: ' + items[(to + 1) % n].t);
       strip.forEach((b, k) => b.toggleAttribute('aria-current', k === to));
       now.classList.remove('is-out');
-    }, app.reduced ? 0 : 650);
-    const land = () => {
-      layer.style.backgroundImage = url(to); next.style.backgroundImage = url(to + 1); next2.style.backgroundImage = url(to + 2);
-      i = to; flying = false; el.classList.remove('is-flying'); run();
-    };
-    if (app.reduced) { land(); return; }
-    const F = win.offsetWidth / next.offsetWidth;
-    const a = layer.animate([{ transform: 'scale(1)' }, { transform: `scale(${F})` }], { duration: 1500, easing: 'cubic-bezier(.62,0,.18,1)' });
-    a.onfinish = () => { land(); a.cancel(); };
+    }, app.reduced ? 0 : 450);
+    setTimeout(() => { moving = false; el.classList.remove('is-moving'); run(); }, app.reduced ? 0 : 1150);
   }
-  fill.addEventListener('animationend', () => fly((i + 1) % n));
-  next.addEventListener('click', () => fly((i + 1) % n));
-  strip.forEach((b, k) => b.addEventListener('click', () => fly(k)));
+  fill.addEventListener('animationend', () => go((i + 1) % n));
+  cs.forEach((c, k) => c.addEventListener('click', () => { if (off(k) === 1) go(k); }));
+  strip.forEach((b, k) => b.addEventListener('click', () => go(k)));
   pause.addEventListener('click', () => { paused = !paused; pause.setAttribute('aria-pressed', String(paused)); pause.setAttribute('aria-label', paused ? 'Play the slideshow' : 'Pause the slideshow'); held(); });
-  win.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') { hover = true; held(); } });
-  win.addEventListener('pointerleave', () => { hover = false; held(); });
+  stage.addEventListener('pointerover', e => { if (e.pointerType === 'mouse' && e.target.closest('.pt-c.is-on')) { hover = true; held(); } });
+  stage.addEventListener('pointerout', e => { if (e.target.closest('.pt-c.is-on')) { hover = false; held(); } });
   new IntersectionObserver(([e]) => { seen = e.isIntersecting; held(); }, { threshold: 0.4 }).observe(el);
   document.addEventListener('visibilitychange', held);
+  layout(true);
+  addEventListener('resize', () => layout(true));
   held(); run();
-  window.__portal = { fly, get i() { return i; } };   // for stills and QA
+  window.__portal = { go, get i() { return i; } };   // for stills and QA
 }
 
 function tracy() {

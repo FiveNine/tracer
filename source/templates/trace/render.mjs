@@ -72,8 +72,8 @@ const KINDS = {
       ${s.credit ? `<p class="credit">${md(s.credit)}</p>` : ''}
     </div>`;
   },
-  // one great round window onto a place, with the next place waiting small at its centre. A ring round the small
-  // window fills; when it closes the page flies through into the next place (no extra scroll). app.js: portal()
+  // the places as full round photos: one large, the next peeking in from the right edge. A ring round the large one
+  // fills; when it closes the next slides in and takes its place (no extra scroll). app.js: portal()
   portal(s, c) {
     const it = s.items, n = it.length, img = i => `url(assets/${esc(it[(i + n) % n].img)})`;
     return `<div class="pt" data-pt data-items="${esc(JSON.stringify(it.map(x => ({ t: x.title, b: x.body, img: 'assets/' + x.img, credit: x.credit }))))}">
@@ -85,11 +85,9 @@ const KINDS = {
         ${ctas(s.ctas, c)}${s.note ? `<p class="note">${md(s.note)}</p>` : ''}
   <p class="credit" data-pt-credit>${md(it[0].credit || '')}</p>
       </div>
-      <div class="pt-win" data-pt-win>
-        <div class="pt-layer" data-pt-layer style="background-image:${img(0)}">
-          <button type="button" class="pt-next" data-pt-go style="background-image:${img(1)}" aria-label="Next place: ${esc(it[1 % n].title)}"><span class="pt-next2" style="background-image:${img(2)}"></span></button>
-          <svg class="pt-ring" viewBox="0 0 100 100" aria-hidden="true"><circle class="pt-track" cx="50" cy="50" r="48"/><circle class="pt-fill" data-pt-fill cx="50" cy="50" r="48" pathLength="100"/></svg>
-        </div>
+      <div class="pt-stage" data-pt-stage>
+        ${it.map((x, i) => `<button type="button" class="pt-c" data-pt-c="${i}" tabindex="-1" aria-label="${esc(x.title)}"><span style="background-image:${img(i)}"></span></button>`).join('')}
+        <svg class="pt-ring" data-pt-ring viewBox="0 0 100 100" aria-hidden="true"><circle class="pt-track" cx="50" cy="50" r="49"/><circle class="pt-fill" data-pt-fill cx="50" cy="50" r="49" pathLength="100"/></svg>
       </div>
     </div>`;
   },
