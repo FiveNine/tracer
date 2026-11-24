@@ -1,6 +1,6 @@
 /*
  * trace: a multi-page site drawn by one line of light. render() writes every page as its own HTML file; each page's
- * sections are typed blocks (hero, tokenize, portal, timelock, coin, dots, ledger, lens, pillars, steps, facts, safes, cards, timeline, team, faq, params, prose,
+ * sections are typed blocks (hero, tokenize, factory, portal, timelock, coin, dots, ledger, lens, pillars, steps, facts, safes, cards, timeline, team, faq, params, prose,
  * contact, cta) and each section names the world's tone (blue | paper) and where the line sits (stage).
  * The line's shapes and scroll keys per page live in experience.pages[page].
  */
@@ -116,6 +116,19 @@ const KINDS = {
       <div class="lg-panel" data-reveal="fade" data-delay="200">${s.items.map((it, i) => `<div class="lg-r"><span class="n">${String(i + 1).padStart(2, '0')}</span><b>${esc(it.name)}</b><span class="lg-p">${md(it.purpose)}</span>
         ${it.address ? `<a href="${esc(ex + '/address/' + it.address)}" target="_blank" rel="noopener"><code>${esc(it.address.slice(0, 6) + '…' + it.address.slice(-4))}</code> Basescan ↗</a>` : '<code>Address published at launch</code>'}</div>`).join('')}</div>
       ${s.note ? `<p class="note">${md(s.note)}</p>` : ''}`;
+  },
+  // the Carrot machine: a pinned production line in 3D (scene/factory.js); scrolling walks it station by station
+  factory(s, c) {
+    const items = s.items.map(it => ({ title: it.title, sign: it.sign, body: it.body }));
+    return `<div class="fx" data-fx data-model="assets/${esc(s.model || '')}" data-items="${esc(JSON.stringify(items))}">
+      <div class="fx-stage" data-fx-stage aria-hidden="true"></div>
+      <div class="fx-signs" data-fx-signs aria-hidden="true"></div>
+      <div class="fx-copy">${head(s)}
+        <div class="fx-card" data-fx-card aria-live="polite"><span class="n" data-fx-n></span><b data-fx-t></b><p data-fx-b></p></div>
+        <ol class="sr">${s.items.map(it => `<li><b>${esc(it.title)}</b> ${md(it.body)}</li>`).join('')}</ol>
+      </div>
+      <ol class="fx-steps" aria-hidden="true">${s.items.map(() => '<li></li>').join('')}</ol>
+    </div>`;
   },
   // governance as one sentence with its pause marked ("_Wait._"), the steps, and the Timelock as a live dial (app.js timelock())
   timelock(s, c) {

@@ -63,7 +63,7 @@ def keys_of(sections, shapes, cta_tone='blue'):
         k = {'at': '#' + s['id'], 'set': d}
         keyof[i] = k
         if n: k['narrow'] = n
-        if i > 0: k.update({'shift': '-18vh', 'hold': s.get('_hold', .45)})   # arrives as the section settles into view; _hold: how long the previous pose stays
+        if i > 0: k.update({'shift': s.get('_shift', '-18vh'), 'hold': s.get('_hold', .45)})   # arrives as the section settles into view; _hold: how long the previous pose stays
         out.append(k)
         sh = shapes[s['_k']]
         if s['_stage'] == 'sweep':
@@ -97,7 +97,7 @@ def sec(id, kind_, tone, stage, k, **kw):
 def page(title, description, shapes, sections, tags=(), art=()):
     keys = keys_of(sections, shapes)
     for s in sections:
-        s.pop('_stage'); s.pop('_k'); s.pop('_hold', None)
+        s.pop('_stage'); s.pop('_k'); s.pop('_hold', None); s.pop('_shift', None)
     return {'title': title, 'description': description, 'sections': sections, 'tags': list(tags), 'art': list(art)}, {'shapes': shapes, 'keys': keys}
 
 
@@ -142,7 +142,6 @@ pages, xpages = {}, {}
 # The line is the hero's wordmark, then the light that tokenizes a real removal project as it sweeps across it, then a
 # fly-through of removal places (no line there); it steps back for the reading chapters and returns to draw Tracy.
 shapes = ['word', 'streak',   # the streak is the dock's (app.js dock()): next to the word, so they morph straight into each other
-          {'kind': 'sweep', 'photo': 'photos/biochar.webp', 'from': .78, 'to': .02, 'nFrom': .8, 'nTo': -.55},
           {'kind': 'tracyArt', 'fill': 'tracyFill', 'drawIn': '#faq'}, 'mark']
 pages['index'], xpages['index'] = page(
     'Tracer: carbon removal, traced on-chain', 'Tracer is a real-world asset project on Base. TRCR holders govern the Carrot protocol, where verified carbon removal is issued, traded and retired on-chain.',
@@ -150,49 +149,50 @@ pages['index'], xpages['index'] = page(
         sec('hero', 'hero', 'blue', 'hero', 0, full=True, title='Leave No Trace.',
             lede=['Tracer turns verified carbon removal into an on-chain asset on Base, and retires it for good. TRCR holders run it.'],
             ctas=[{'label': 'Buy TRCR', 'href': '@buy'}, {'label': 'Learn about TRCR', 'href': 'token', 'ghost': True}], stageBox=True),
-        sec('rwa', 'tokenize', 'paper', 'sweep', 2, eyebrow='How the RWA works', title='The world, made on-chain.',
-            lede=['Where the line passes, verified carbon removal becomes **CRRT**: an asset on Base you can hold, trade and retire. Every dot is a gram.'],
-            items=[
-                {'title': 'Licensed and endorsed', 'body': 'Endorsers admitted by the DAO license removal projects and endorse their credits.'},
-                {'title': 'Issued as CRRT', 'body': 'Projects issue CRRT against endorsed removal. One slice is one gram; a million slices is a tonne.'},
-                {'title': 'Bought on the marketplace', 'body': 'Fixed-price listings in admitted stablecoins. No protocol fees.'},
-                {'title': 'Retired in a Rabbit', 'body': 'Send CRRT into a Rabbit and it is retired for good, with its beneficiary on record.'}],
-            counter='grams on-chain · 1,000,000 = one tonne'),
-        sec('projects', 'portal', 'paper', 'hidden', 3, full=True, eyebrow='Real-world assets', title='Every tonne has a place.',
+        # the Carrot machine (scene/factory.js); the world turns to paper only once its stage covers the screen
+        sec('machine', 'factory', 'paper', 'hidden', 2, _hold=.97, _shift='0vh', eyebrow='The Carrot ecosystem', title='How a tonne of carbon becomes a token.',
+            lede=['Six stations, one line. Scroll to walk it, from a forest to a retired tonne.'], model='models/rabbit.glb', items=[
+                {'title': 'Removal projects', 'sign': 'Removal projects', 'body': 'Forests, mangroves, biochar and crushed basalt pull CO₂ out of the air. Every tonne removed is measured.'},
+                {'title': 'Endorsed', 'sign': 'Endorsed', 'body': 'An Endorser admitted by the DAO checks the project and stamps each tonne, once. No tonne is counted twice.'},
+                {'title': 'Minted as CRRT, on Base', 'sign': 'Minted as CRRT', 'body': 'The endorsed tonne becomes 1,000,000 CRRT: one token for every gram, each one traceable to its tonne.'},
+                {'title': 'Sold on the marketplace', 'sign': 'Marketplace', 'body': 'Projects list CRRT at a fixed price, paid in admitted stablecoins. No protocol fees.'},
+                {'title': 'Retired in a Rabbit', 'sign': 'Retired in a Rabbit', 'body': 'Send CRRT into a Rabbit and it is retired for good, with the beneficiary on public record.'},
+                {'title': 'Run by TRCR holders', 'sign': 'Run by TRCR holders', 'body': 'TRCR holders vote on who may endorse, what the market accepts and how it runs. The Timelock carries it out.'}]),
+        sec('projects', 'portal', 'paper', 'hidden', 2, full=True, eyebrow='Real-world assets', title='Every tonne has a place.',
             lede=['Each CRRT comes from a real removal project you can look into: where it is, who endorsed it, how much has been issued and how much is retired.'],
             items=PLACES,
             ctas=[{'label': 'Explore the ecosystem', 'href': 'ecosystem', 'ghost': True}],
             note='The kinds of removal behind CRRT. Endorsed projects are listed on the marketplace at launch.'),
-        sec('token', 'coin', 'paper', 'hidden', 3, full=True, eyebrow='The token', title='What is TRCR?',
+        sec('token', 'coin', 'paper', 'hidden', 2, full=True, eyebrow='The token', title='What is TRCR?',
             lede=['The governance token of the Carrot protocol, on Base. Hold it, delegate it, vote with it.'],
             items=[{'title': 'Vote on the protocol', 'tag': 'Governance', 'href': 'governance'},
                    {'title': 'Delegate your votes', 'tag': 'Guide', 'href': 'governance#how'},
                    {'title': 'Get it in the airdrop', 'tag': 'Next', 'href': 'token#airdrop'},
                    {'title': 'Buy on QuickSwap', 'tag': 'At launch', 'href': '@buy'}],
             facts=[{'k': 'Network', 'v': 'Base'}, {'k': 'Supply', 'v': '12.5B'}, {'k': 'Minting', 'v': 'Never'}], chip=True),
-        sec('governance', 'timelock', 'paper', 'hidden', 3, full=True, eyebrow='Governance', title='Hold. Delegate. Vote. _Wait._ Execute.', items=[
+        sec('governance', 'timelock', 'paper', 'hidden', 2, full=True, eyebrow='Governance', title='Hold. Delegate. Vote. _Wait._ Execute.', items=[
             {'title': 'Hold TRCR', 'body': 'Your tokens are your voting weight.'},
             {'title': 'Delegate', 'body': 'To yourself or someone you trust. Votes only count once delegated.'},
             {'title': 'Vote or propose', 'body': 'On Endorsers, payment tokens, the marketplace and upgrades.'},
             {'title': 'The Timelock executes', 'body': 'A passed proposal waits in public before it runs on-chain. No back door.'}],
             dial={'label': 'Timelock · example proposal', 'caption': 'until it can run on-chain', 'secs': 101520, 'total': 172800},
             ctas=[{'label': 'How governance works', 'href': 'governance', 'ghost': True}]),
-        sec('base', 'cta', 'paper', 'hidden', 3, eyebrow='Built on Base', title='Ethereum security, at cents a move.', lede=['Base is an Ethereum layer 2 incubated by Coinbase. New to it? The guide takes you from no wallet to holding TRCR in six steps.'],
+        sec('base', 'cta', 'paper', 'hidden', 2, eyebrow='Built on Base', title='Ethereum security, at cents a move.', lede=['Base is an Ethereum layer 2 incubated by Coinbase. New to it? The guide takes you from no wallet to holding TRCR in six steps.'],
             items=[], ctas=[{'label': 'How to Base', 'href': 'base'}]),
-        sec('ecosystem', 'cards', 'paper', 'hidden', 3, eyebrow='Ecosystem', title='Where to go next.', items=[
+        sec('ecosystem', 'cards', 'paper', 'hidden', 2, eyebrow='Ecosystem', title='Where to go next.', items=[
             {'title': 'Marketplace', 'body': 'Buy CRRT from endorsed projects.', 'status': 'Coming soon', 'href': '@carbonPioneers'},
             {'title': 'Carbon Impact Scan', 'body': 'Find your footprint, then remove it.', 'status': 'Coming soon', 'href': '@carbonPioneers'},
             {'title': 'Academy', 'body': 'Courses on buying carbon removal.', 'status': 'Later', 'href': '@carbonPioneers'},
             {'title': 'News', 'body': 'Carbon removal news and market insight.', 'status': 'Live', 'href': '@carbonPioneers'}],
             note='These live on Carbon Pioneers, the carbon side of the project.'),
-        sec('roadmap', 'cta', 'paper', 'hidden', 3, eyebrow='Roadmap', title='Built, tested, and next up.', lede=['The protocol is built and tested on testnet. Next: the airdrop, the QuickSwap launch and mainnet on Base.'], items=[],
+        sec('roadmap', 'cta', 'paper', 'hidden', 2, eyebrow='Roadmap', title='Built, tested, and next up.', lede=['The protocol is built and tested on testnet. Next: the airdrop, the QuickSwap launch and mainnet on Base.'], items=[],
             ctas=[{'label': 'See the roadmap', 'href': 'roadmap', 'ghost': True}]),
-        sec('faq', 'faq', 'paper', 'right', 3, full=True, eyebrow='FAQ · Ask Tracy', title='Questions? Ask Tracy.',
+        sec('faq', 'faq', 'paper', 'right', 2, full=True, eyebrow='FAQ · Ask Tracy', title='Questions? Ask Tracy.',
             lede=['Tracy is Tracer\'s guide, in the corner of every page. The questions people ask most are right here.'], limit=5, askTracy=True,
             ctas=[{'label': 'All questions', 'href': 'faq', 'ghost': True}]),
-        sec('join', 'cta', 'paper', 'right', 4, full=True, _hold=.85, eyebrow='Take part', title='Hold it. Vote with it. Trace it.', ctas=[{'label': 'Buy TRCR', 'href': '@buy'}, {'label': 'Governance', 'href': 'governance', 'ghost': True}], chip=True),
+        sec('join', 'cta', 'paper', 'right', 3, full=True, _hold=.85, eyebrow='Take part', title='Hold it. Vote with it. Trace it.', ctas=[{'label': 'Buy TRCR', 'href': '@buy'}, {'label': 'Governance', 'href': 'governance', 'ghost': True}], chip=True),
     ],
-    )   # Tracy (k 3) is drawn by the line, then the line fills her blue areas (tracyFill)
+    )   # Tracy (k 2) is drawn by the line, then the line fills her blue areas (tracyFill)
 
 # ---------------------------------------------------------------- token
 shapes = ['mark']   # the line is the homepage's; here it stays out of sight

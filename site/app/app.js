@@ -14,6 +14,7 @@ import { createField } from './scene/field.js';
 import { createFill } from './scene/fill.js';
 import { createDiscs } from './scene/discs.js';
 import { createTokenize } from './scene/tokenize.js';
+import { createFactory } from './scene/factory.js';
 
 const S = window.SITE, X = S.experience || {}, C = S.content;
 const PID = document.body.dataset.page || 'index';
@@ -132,7 +133,7 @@ function labels() {
 // the whole line steps back together, smoothly; its labels and artwork with it. No patches, no boxes.
 function occlusion() {
   if (!line) return;
-  const blocks = [...document.querySelectorAll('.sec-in > :not([data-stage]):not([data-tok]), .tok-copy > *, .foot-top > *, .foot-cols')];   // the hero's reserved box is the line's, not copy; in the pinned photo chapter only its copy counts
+  const blocks = [...document.querySelectorAll('.sec-in > :not([data-stage]):not([data-tok]):not([data-fx]), .tok-copy > *, .fx-copy > *, .foot-top > *, .foot-cols')];   // the hero's reserved box is the line's, not copy; in the pinned photo chapter only its copy counts
   const box = {};
   let fade = 1;
   app.add((t, dt) => {
@@ -629,6 +630,7 @@ createChoreo(app, keys);
 if (keys[0]) for (const [n, v] of Object.entries(keys[0].set)) if (P.has(n)) P.set(n, v, true);
 P.set('tone.view', P.get('tone') > 0.5 ? 1 : 0, true);
 labels(); touch(); occlusion(); carry(); drawIn(); dock(keys);
+createFactory(app, document.querySelector('[data-fx]')).catch(e => console.warn('[factory]', e));
 window.__trace = { app, line };   // for stills, QA and editors
 if (app.gl) { await app.idle(); app.renderer.compile(app.scene, app.camera); }
 shaders(1);

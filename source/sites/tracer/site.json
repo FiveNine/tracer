@@ -480,34 +480,48 @@
       "stageBox": true
      },
      {
-      "id": "rwa",
-      "kind": "tokenize",
+      "id": "machine",
+      "kind": "factory",
       "tone": "paper",
       "stage": "none",
-      "eyebrow": "How the RWA works",
-      "title": "The world, made on-chain.",
+      "eyebrow": "The Carrot ecosystem",
+      "title": "How a tonne of carbon becomes a token.",
       "lede": [
-       "Where the line passes, verified carbon removal becomes **CRRT**: an asset on Base you can hold, trade and retire. Every dot is a gram."
+       "Six stations, one line. Scroll to walk it, from a forest to a retired tonne."
       ],
+      "model": "models/rabbit.glb",
       "items": [
        {
-        "title": "Licensed and endorsed",
-        "body": "Endorsers admitted by the DAO license removal projects and endorse their credits."
+        "title": "Removal projects",
+        "sign": "Removal projects",
+        "body": "Forests, mangroves, biochar and crushed basalt pull CO₂ out of the air. Every tonne removed is measured."
        },
        {
-        "title": "Issued as CRRT",
-        "body": "Projects issue CRRT against endorsed removal. One slice is one gram; a million slices is a tonne."
+        "title": "Endorsed",
+        "sign": "Endorsed",
+        "body": "An Endorser admitted by the DAO checks the project and stamps each tonne, once. No tonne is counted twice."
        },
        {
-        "title": "Bought on the marketplace",
-        "body": "Fixed-price listings in admitted stablecoins. No protocol fees."
+        "title": "Minted as CRRT, on Base",
+        "sign": "Minted as CRRT",
+        "body": "The endorsed tonne becomes 1,000,000 CRRT: one token for every gram, each one traceable to its tonne."
+       },
+       {
+        "title": "Sold on the marketplace",
+        "sign": "Marketplace",
+        "body": "Projects list CRRT at a fixed price, paid in admitted stablecoins. No protocol fees."
        },
        {
         "title": "Retired in a Rabbit",
-        "body": "Send CRRT into a Rabbit and it is retired for good, with its beneficiary on record."
+        "sign": "Retired in a Rabbit",
+        "body": "Send CRRT into a Rabbit and it is retired for good, with the beneficiary on public record."
+       },
+       {
+        "title": "Run by TRCR holders",
+        "sign": "Run by TRCR holders",
+        "body": "TRCR holders vote on who may endorse, what the market accepts and how it runs. The Timelock carries it out."
        }
-      ],
-      "counter": "grams on-chain · 1,000,000 = one tonne"
+      ]
      },
      {
       "id": "projects",
@@ -1809,14 +1823,6 @@
      "word",
      "streak",
      {
-      "kind": "sweep",
-      "photo": "photos/biochar.webp",
-      "from": 0.78,
-      "to": 0.02,
-      "nFrom": 0.8,
-      "nTo": -0.55
-     },
-     {
       "kind": "tracyArt",
       "fill": "tracyFill",
       "drawIn": "#faq"
@@ -1844,25 +1850,26 @@
       }
      },
      {
-      "at": "#rwa",
-      "hold": 0.97,
-      "ease": "linear",
-      "asFirst": true,
+      "at": "#machine",
       "set": {
-       "line.x": 0,
-       "line.y": 0.5,
-       "line.s": 0.9,
        "line.alpha": 0,
        "pulse.amt": 0,
-       "line.ry": 0,
+       "line.shape": 2,
+       "tone": 1,
+       "line.x": 0.5,
+       "line.y": 0,
+       "line.s": 1.0,
        "line.rx": 0,
-       "line.shape": 0,
-       "tone": 1
+       "line.ry": 0
       },
+      "shift": "0vh",
+      "hold": 0.97,
       "narrow": {
        "line.x": 0,
-       "line.y": 0.45,
-       "line.s": 0.366
+       "line.y": 0.46,
+       "line.s": 0.556,
+       "line.rx": 0,
+       "line.ry": 0.0
       }
      },
      {
@@ -1870,7 +1877,7 @@
       "set": {
        "line.alpha": 0,
        "pulse.amt": 0,
-       "line.shape": 3,
+       "line.shape": 2,
        "tone": 1,
        "line.x": 0.5,
        "line.y": 0,
@@ -1893,7 +1900,7 @@
       "set": {
        "line.alpha": 0,
        "pulse.amt": 0,
-       "line.shape": 3,
+       "line.shape": 2,
        "tone": 1,
        "line.x": 0.5,
        "line.y": 0,
@@ -1916,7 +1923,7 @@
       "set": {
        "line.alpha": 0,
        "pulse.amt": 0,
-       "line.shape": 3,
+       "line.shape": 2,
        "tone": 1,
        "line.x": 0.5,
        "line.y": 0,
@@ -1939,7 +1946,7 @@
       "set": {
        "line.alpha": 0,
        "pulse.amt": 0,
-       "line.shape": 3,
+       "line.shape": 2,
        "tone": 1,
        "line.x": 0.5,
        "line.y": 0,
@@ -1962,7 +1969,7 @@
       "set": {
        "line.alpha": 0,
        "pulse.amt": 0,
-       "line.shape": 3,
+       "line.shape": 2,
        "tone": 1,
        "line.x": 0.5,
        "line.y": 0,
@@ -1985,7 +1992,7 @@
       "set": {
        "line.alpha": 0,
        "pulse.amt": 0,
-       "line.shape": 3,
+       "line.shape": 2,
        "tone": 1,
        "line.x": 0.5,
        "line.y": 0,
@@ -2013,7 +2020,7 @@
        "pulse.amt": 0.8,
        "line.ry": 0,
        "line.rx": 0,
-       "line.shape": 3,
+       "line.shape": 2,
        "tone": 1
       },
       "narrow": {
@@ -2034,16 +2041,16 @@
        "line.s": 1.0,
        "line.alpha": 1,
        "pulse.amt": 0.8,
-       "line.ry": -0.16,
+       "line.ry": 0.16,
        "line.rx": 0.06,
-       "line.shape": 4,
+       "line.shape": 3,
        "tone": 1
       },
       "narrow": {
        "line.x": 0,
        "line.y": 0.46,
        "line.s": 0.667,
-       "line.ry": -0.064,
+       "line.ry": 0.064,
        "line.rx": 0
       },
       "shift": "-18vh",
