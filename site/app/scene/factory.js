@@ -164,7 +164,7 @@ const BLUE = '#0657ff', INK = '#0b1533', WHITE = '#ffffff', PAPER = '#eef1f8';
   }
   // 05 · rabbit: a glazed rabbit bank (a generated model, its own colours). CRRT coins drop in through the slot on its
   // back and are gone for good; a certificate comes out
-  { const g = group(ST[4] + .1, .1, 3.14);
+  { const g = group(ST[4] + .1, .1, 2.55);   // three-quarter on, so the white backs of the ears show
     const gl = o.model ? await new GLTFLoader().loadAsync(o.model).catch(() => null) : null;
     if (gl) {
       const m = gl.scene; const box = new THREE.Box3().setFromObject(m), sz = box.getSize(new THREE.Vector3()), k = 3.6 / sz.y;
