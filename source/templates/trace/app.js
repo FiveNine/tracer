@@ -194,56 +194,107 @@ function carry() {
 
 /* ---------- the logo: one, docking into the header ---------- */
 // At the top of the homepage the traced wordmark stands alone in the middle and the header's links are centred (the
-// header's own logo is hidden). When the wordmark is about to slip under the header, a short timed move plays (not
-// tied to scroll): the wordmark pours into a streak of light, the streak flies in one arc to where the header logo
-// begins, and there the logo itself is traced as a glowing outline and fills in. The links slide to their place at the
-// same time. Scrolling back up plays it in reverse, always towards where the hero's wordmark is at that moment.
+// header's own logo is hidden). When the wordmark is about to slip under the header, a short timed move plays (not tied
+// to scroll): the line travels. One route is laid out on screen: the big wordmark as it stands, a curve up to the
+// header, and the wordmark again at the header logo's size and place. The visible part of the line slides along that
+// route: its front runs out of the big wordmark, along the curve, and writes the small one, while its back leaves the
+// big wordmark from where it was first traced. Nothing is reshaped; the line only moves along its path. Then the
+// header logo fills in under it. Scrolling back up runs the same route backwards. The route is rebuilt every frame of
+// the move from where the hero wordmark and the header logo actually are, so it always starts and ends in place.
 function dock(keys) {
   const brand = document.querySelector('.top .brand'), mark = brand && brand.querySelector('svg');
   const nav = document.querySelector('.top .nav'), hero = document.querySelector('.page-index #hero'), top = document.querySelector('[data-top]');
   const stage = document.querySelector('.page-index [data-stage]');
-  const solid = mark && mark.querySelector('path');
-  if (!line || !solid || !hero || !stage || !keys[0]) return;
+  if (!line || !mark || !hero || !stage || !keys[0] || !line.shapes[1]) return;
   root.classList.add('has-dock');
   const io = p => p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2, clamp = v => Math.min(1, Math.max(0, v));
   const seg = (v, a, b) => clamp((v - a) / (b - a));
-  // the header logo, traced: an outline of the same path, drawn with a dash, over the solid logo that fills in after
-  const trace = solid.cloneNode();
-  trace.setAttribute('fill', 'none'); trace.setAttribute('stroke', 'currentColor'); trace.setAttribute('stroke-linejoin', 'round');
-  trace.classList.add('brand-trace'); mark.style.overflow = 'visible'; mark.appendChild(trace);
-  const TL = trace.getTotalLength();   // dashes in the path's own units (a pathLength or non-scaling stroke breaks them)
-  const strokeW = () => { const m = mark.getScreenCTM(); trace.setAttribute('stroke-width', (1.3 / (m ? m.a : 1)).toFixed(3)); };
-  strokeW(); addEventListener('resize', strokeW);
   let navDx = 0;
   const measure = () => { if (!nav) return; const was = nav.style.transform; nav.style.transition = 'none'; nav.style.transform = ''; const r = nav.getBoundingClientRect(); navDx = r.width ? innerWidth / 2 - (r.left + r.width / 2) : 0; nav.style.transform = was; void nav.offsetWidth; nav.style.transition = ''; };
   measure(); app.onMeasure(measure); addEventListener('resize', measure);
-  const vhw = () => 2 * Math.tan(THREE.MathUtils.degToRad(app.camera.fov / 2)) * 11.3;
-  // where the streak lands: the first point of the header logo's outline, on screen, at the header logo's scale
-  const land = {}, b = line.bounds(0), bw = b[2] - b[0];
-  const landing = () => {
-    const W = innerWidth, H = innerHeight, r = mark.getBoundingClientRect();
-    const pt = trace.getPointAtLength(0), m = trace.getScreenCTM();
-    const px = m ? m.a * pt.x + m.c * pt.y + m.e : r.left, py = m ? m.b * pt.x + m.d * pt.y + m.f : r.top + r.height / 2;
-    land.x = (px - W / 2) / (W / 2); land.y = (H / 2 - py) / (H / 2); land.s = r.width * (vhw() / H) / bw;
-    return land;
+
+  // the wordmark's strokes exactly as the line draws them (shape 0), as closed runs in its own units
+  const N = line.N, W0 = line.shapes[0].data, runs = [];
+  for (let i = 0; i < N;) {
+    if (W0[i * 4 + 3] <= 0) { i++; continue; }
+    let j = i; while (j + 1 < N && W0[(j + 1) * 4 + 3] > 0) j++;
+    const r = []; for (let q = i; q <= j; q++) r.push([W0[q * 4], W0[q * 4 + 1]]);
+    if (r.length > 2) runs.push(r);
+    i = j + 1;
+  }
+  const area = r => { let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; for (const [x, y] of r) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); } return (x1 - x0) * (y1 - y0); };
+  const oi = runs.reduce((m, r, i) => area(r) > area(runs[m]) ? i : m, 0);
+  // the outline starts and ends at its top-left corner: the line leaves the big wordmark there and enters the small one there
+  const fromTopLeft = r => {
+    const closed = Math.hypot(r[0][0] - r[r.length - 1][0], r[0][1] - r[r.length - 1][1]) < 0.05, body = closed ? r.slice(0, -1) : r;
+    let k = 0; body.forEach((p, i) => { if (p[0] - p[1] < body[k][0] - body[k][1]) k = i; });
+    const o = body.slice(k).concat(body.slice(0, k)); o.push(o[0]); return o;
   };
-  const DUR = 1.5;   // pour 0–.3 · fly 0–.6 · trace the logo .56–.88 · fill .8–1
-  let k = 0, docked = false;
+  const outer = fromTopLeft(runs[oi]), counters = runs.filter((_, i) => i !== oi);
+  const b0 = line.bounds(0), bw = b0[2] - b0[0];
+  const view = () => { const H = innerHeight, W = innerWidth, vh = 2 * Math.tan(THREE.MathUtils.degToRad(app.camera.fov / 2)) * 11.3; return { W, H, vh, vw: vh * W / H }; };
+  const place = (r, ps, V) => r.map(p => [p[0] * ps.s + ps.x * V.vw / 2, p[1] * ps.s + ps.y * V.vh / 2]);
+  const landing = V => {   // the word fitted exactly over the header logo
+    const r = mark.getBoundingClientRect(), sc = r.width * (V.vh / V.H) / bw;
+    return { s: sc, x: (r.left + r.width / 2 - V.W / 2) / (V.W / 2) - (b0[0] + b0[2]) / 2 * sc / (V.vw / 2), y: (V.H / 2 - (r.top + r.height / 2)) / (V.H / 2) - (b0[1] + b0[3]) / 2 * sc / (V.vh / 2) };
+  };
+  // the route: big counters, big outline (ending top-left), the curve, small outline (from top-left), small counters
+  const route = new Float32Array(N * 4);
+  const build = (big, small, V) => {
+    const bc = counters.map(r => place(r, big, V)), bo = place(outer, big, V), so = place(outer, small, V), sc = counters.map(r => place(r, small, V));
+    const P = bo[bo.length - 1], Q = so[0], d = Math.hypot(Q[0] - P[0], Q[1] - P[1]) || 1;
+    const dirP = [P[0] - bo[bo.length - 4][0], P[1] - bo[bo.length - 4][1]], lp = Math.hypot(...dirP) || 1;
+    const dirQ = [so[3][0] - Q[0], so[3][1] - Q[1]], lq = Math.hypot(...dirQ) || 1;
+    // leave along the outline's own direction, turned upwards; arrive along the small outline's first stroke
+    const c1 = [P[0] + (dirP[0] / lp * 0.5) * d * 0.35, P[1] + (dirP[1] / lp * 0.5 + 0.7) * d * 0.35];
+    const c2 = [Q[0] - dirQ[0] / lq * d * 0.3, Q[1] - dirQ[1] / lq * d * 0.3];
+    // the curve never rises above the header logo's line, so the line never leaves the screen on its way
+    c1[1] = Math.min(c1[1], Q[1]); c2[1] = Math.min(c2[1], Q[1]);
+    const curve = []; for (let k = 1; k < 64; k++) { const t = k / 64, u = 1 - t; curve.push([u * u * u * P[0] + 3 * u * u * t * c1[0] + 3 * u * t * t * c2[0] + t * t * t * Q[0], u * u * u * P[1] + 3 * u * u * t * c1[1] + 3 * u * t * t * c2[1] + t * t * t * Q[1]]); }
+    const through = bo.concat(curve, so), iA = bo.length - 1, iB = bo.length - 1 + curve.length + 1;
+    const polys = [...bc, through, ...sc], throughAt = bc.length;
+    // segments: strokes are visible, the jumps between strokes hidden (sampled sparsely, as the shapes are)
+    const segs = []; let prev = null, segA = 0, segB = 0;
+    polys.forEach((pl, pi) => {
+      if (prev) segs.push({ a: prev, b: pl[0], vis: 0 });
+      if (pi === throughAt) { segA = segs.length + iA; segB = segs.length + iB; }
+      for (let q = 0; q < pl.length - 1; q++) segs.push({ a: pl[q], b: pl[q + 1], vis: 1 });
+      prev = pl[pl.length - 1];
+    });
+    const len = segs.map(g => Math.hypot(g.b[0] - g.a[0], g.b[1] - g.a[1])), visible = len.reduce((s, l, i) => s + (segs[i].vis ? l : 0), 0);
+    const minJump = 4 * visible / N, w = len.map((l, i) => segs[i].vis ? l : Math.max(l * 0.08, minJump));
+    const total = w.reduce((s, v) => s + v, 0) || 1;
+    let wA = 0, wB = 0; for (let i = 0; i < segs.length; i++) { if (i < segA) wA += w[i]; if (i < segB) wB += w[i]; }
+    let si = 0, acc = 0;
+    for (let i = 0; i < N; i++) {
+      const target = i / (N - 1) * total;
+      while (si < segs.length - 1 && acc + w[si] < target) { acc += w[si]; si++; }
+      const g = segs[si], t = w[si] > 0 ? clamp((target - acc) / w[si]) : 0;
+      route[i * 4] = g.a[0] + (g.b[0] - g.a[0]) * t; route[i * 4 + 1] = g.a[1] + (g.b[1] - g.a[1]) * t; route[i * 4 + 2] = 0; route[i * 4 + 3] = g.vis;
+    }
+    for (let i = 1; i < N - 1; i++) {   // the samples either side of a hidden jump sit on the stroke ends (no faint diagonals)
+      const v = route[i * 4 + 3];
+      const snap = j => { route[i * 4] = route[j * 4]; route[i * 4 + 1] = route[j * 4 + 1]; };
+      if (v === 0 && route[(i - 1) * 4 + 3] > 0) snap(i - 1); else if (v === 0 && route[(i + 1) * 4 + 3] > 0) snap(i + 1);
+    }
+    line.shapes[1].data.set(route);
+    line.texture.image.data.set(route, N * 4); line.texture.needsUpdate = true;
+    return { ua: wA / total, ub: wB / total };
+  };
+
+  const DUR = 1.4;   // the travel 0–.84 · the header logo fills in under the line .84–1
+  let k = 0, docked = false, moved = false;
   const setNav = on => { if (!nav) return; nav.style.transform = on || innerWidth <= 820 ? '' : `translateX(${navDx.toFixed(1)}px)`; };
   setNav(false);
-  const show = (traceDraw, traceA, fill) => {
-    brand.style.opacity = traceA > 0 || fill > 0 ? '1' : '0';
-    trace.style.strokeDasharray = `${TL} ${TL}`; trace.style.strokeDashoffset = (TL * (1 - traceDraw)).toFixed(2);
-    trace.style.opacity = traceA.toFixed(3); solid.style.fillOpacity = fill.toFixed(3);
-  };
+  window.__dock = { get k() { return k; }, get docked() { return docked; } };   // for stills and QA
   app.add((t, dt) => {
     const vh = innerHeight, y = scrollY;
     if (y > hero.offsetHeight + vh) {   // well past the hero: the choreography has the line again (hidden until Tracy)
-      if (docking) { docking = false; lean = 1; P.set('line.w', 2.4, true); P.set('line.halo', 0.22, true); }
-      show(1, 0, 1); top.classList.remove('in-hero'); setNav(true); k = 1; docked = true;
+      if (docking) { docking = false; lean = 1; P.set('line.w', 2.4, true); P.set('line.halo', 0.22, true); P.set('line.start', 0, true); P.set('line.draw', 1, true); }
+      brand.style.opacity = ''; top.classList.remove('in-hero'); setNav(true); k = 1; docked = true;
       return;
     }
-    docking = true;
+    docking = true; lean = 0;   // the camera holds still in the hero, so the route on screen is exact
     top.classList.toggle('in-hero', hero.getBoundingClientRect().bottom > 70);
     // when: the moment the wordmark would slip under the header (with a little hysteresis on the way back);
     // on phones the wordmark starts right under the header, so there the first real scroll is the moment
@@ -253,25 +304,30 @@ function dock(keys) {
     setNav(docked);
     if (app.reduced) k = docked ? 1 : 0;
     else k = clamp(k + (docked ? 1 : -1) * dt / (window.__dockDur || DUR));   // __dockDur: slow it down for stills
-    // the hero pose, live: riding with the page, so the way back always ends exactly where the wordmark is
-    const a = keys[0].set, hx = a['line.x'], hy = a['line.y'] + y / vh * 2, hs = a['line.s'];
-    lean = k > 0 ? 0 : 1;
+    // the hero wordmark's pose, live: what is left of it rides with the page, like the copy around it
+    const a = keys[0].set, big = { x: a['line.x'], y: a['line.y'] + y / vh * 2, s: a['line.s'] };
     if (k <= 0) {
-      P.set('line.x', hx, true); P.set('line.y', hy, true); P.set('line.s', hs, true); P.set('line.shape', 0, true);
-      P.set('line.alpha', 1, true); P.set('line.w', 2.4, true); P.set('line.halo', 0.22, true);
-      show(0, 0, 0);
+      P.set('line.x', big.x, true); P.set('line.y', big.y, true); P.set('line.s', big.s, true); P.set('line.rx', 0, true); P.set('line.ry', 0, true);
+      P.set('line.shape', 0, true); P.set('line.start', 0, true); P.set('line.alpha', 1, true); P.set('line.w', 2.4, true); P.set('line.halo', 0.22, true);
+      if (moved) P.set('line.draw', 1, true);   // back from a move: the wordmark whole again (before any move, the intro draws it)
+      brand.style.opacity = '0';
       return;
     }
-    const L = landing(), m = io(seg(k, 0, 0.6)), arc = Math.sin(Math.PI * m) * 0.09;
-    P.set('line.x', hx + (L.x - hx) * m, true);
-    P.set('line.y', hy + (L.y - hy) * m + arc, true);
-    P.set('line.s', hs + (L.s - hs) * m, true);
-    P.set('line.rx', 0, true); P.set('line.ry', 0, true);
-    P.set('line.shape', io(seg(k, 0, 0.3)), true); P.set('line.draw', 1, true);
-    P.set('line.w', 2.4 - 0.6 * m, true); P.set('line.halo', 0.22 + 0.1 * Math.sin(Math.PI * m), true);
-    P.set('line.alpha', 1 - io(seg(k, 0.55, 0.64)), true);                  // the streak goes into the logo's first point
-    const tr = io(seg(k, 0.56, 0.88)), fill = io(seg(k, 0.8, 1));
-    show(tr, k < 0.56 ? 0 : 1 - fill * 0.85, fill);
+    moved = true;
+    const V = view(), { ua, ub } = build(big, landing(V), V);
+    // the route is laid out in screen space: the line itself sits still, untransformed
+    P.set('line.x', 0, true); P.set('line.y', 0, true); P.set('line.s', 1, true); P.set('line.rx', 0, true); P.set('line.ry', 0, true);
+    P.set('line.shape', 1, true);
+    // the front runs from the big wordmark's last point to the small one's last; the back follows from the big
+    // wordmark's first point and clears it and the curve early, so what is left behind is gone before the page can
+    // carry it off the screen (the back never overtakes the front: it ends where the small wordmark begins)
+    const e = io(seg(k, 0, 0.84));
+    P.set('line.start', ub * io(seg(k, 0, 0.4)), true);
+    P.set('line.draw', ua + (1 - ua) * e, true);
+    P.set('line.w', 2.4 - 1.1 * e, true); P.set('line.halo', 0.22 - 0.1 * e, true);
+    const hand = io(seg(k, 0.84, 1));
+    P.set('line.alpha', 1 - hand, true);
+    brand.style.opacity = hand.toFixed(3);
   }, 6);
 }
 
