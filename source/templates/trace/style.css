@@ -494,3 +494,20 @@ html:has(.top.is-hidden) .announce { transform: translateY(-100%); }
 }
 @media (prefers-reduced-motion: reduce) { .btn, .pillars a, .cards a, .top { transition: none; } .tracy-panel { animation: none; } }
 .on-blue .tl-steps li.is-key b { color: #b9ceff; }
+
+/* ---------- three sizes, site-wide ----------
+   L for headlines and the big numbers, M for everything you read or press, S for small labels and notes.
+   Set last and firmly, so no component can bring in a fourth. */
+:root { --fs-l: clamp(38px, 4.4vw, 68px); --fs-m: 17px; --fs-s: 12px; }
+html body :is(.sec, .top, .menu, .foot, .tracy, .announce) * { font-size: var(--fs-m) !important; }
+html body :is(.sec, .menu) :is(h1, h2, .tok-count b, .pt-n b, .tl-mid b, .lg-m b, .menu nav a) { font-size: var(--fs-l) !important; }
+html body :is(.sec, .top, .menu, .foot, .tracy, .announce) :is(
+  .eyebrow, .mono, .note, .credit, .tbc, .chip-k, .chip-v, .chip-b, .n, .status, .tag-l, .announce b, .announce span,
+  .tok-count span, .tok-steps .n, .tl-steps .n, .tl-mid .mono, .tl-mid span:last-child, .cn-uses em, .cn-facts dt, .lg-m span, .lg-m p,
+  .lg-r code, .lg-r a, .facts dt, .facts dd small, .steps .n, .timeline .when, .timeline .state, .pt-n small,
+  .foot-cols h4, .foot-small, .foot-small span, .tracy-note, .tracy-hi, .faq-search span, .form label > span, .form-msg, .channels span, .safe-meta, .safe-meta *
+) { font-size: var(--fs-s) !important; }
+.pt-n small { letter-spacing: .1em; }
+.cn-facts dd { font-family: var(--font-sans); font-weight: 600; }
+html body :is(.sec, .menu) :is(h1, h2, .tok-count b, .pt-n b, .tl-mid b, .lg-m b) * { font-size: inherit !important; }   /* split headlines: the words keep the headline's size */
+.top.is-docking { background: transparent !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }

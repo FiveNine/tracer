@@ -76,11 +76,11 @@ const VERT = /* glsl */`
 
 const FRAG = /* glsl */`
   uniform vec3 uColor, uHot, uBg;
-  uniform float uAlpha, uHalo, uDraw, uPulse, uPulseAmt, uClickU, uClickAge, uTime, uDpr;
+  uniform float uAlpha, uHalo, uDraw, uStart, uPulse, uPulseAmt, uClickU, uClickAge, uTime, uDpr;
   uniform vec4 uClip;      // drawing-buffer px (x0, y0, x1, y1), y up: the line shows only inside, feathered top and bottom
   varying float vSide, vU, vVis, vW;
   void main() {
-    if (vU > uDraw + .002) discard;
+    if (vU > uDraw + .002 || vU < uStart - .002) discard;   // drawn from 0 to uDraw; erased from 0 up to uStart
     vec2 f = gl_FragCoord.xy;
     float clip = step(uClip.x, f.x) * step(f.x, uClip.z) * smoothstep(uClip.y, uClip.y + 36. * uDpr, f.y) * smoothstep(uClip.w, uClip.w - 36. * uDpr, f.y);
     if (clip < .002) discard;
@@ -99,7 +99,8 @@ const FRAG = /* glsl */`
     float hot = clamp(sig + touch + head, 0., 1.6);
     vec3 col = mix(uColor, uHot, clamp(hot, 0., 1.));
     // the pulse brightens what is drawn; it never reveals the hidden jumps between strokes
-    float a = body * uAlpha * clip * min(1., vVis * (1. + hot * 1.4)) * step(.001, vVis);
+    float tail = smoothstep(uStart, uStart + .025, vU);   // the erasing end thins out rather than cutting off
+    float a = tail * body * uAlpha * clip * min(1., vVis * (1. + hot * 1.4)) * step(.001, vVis);
     if (a < .003) discard;
     // the final colour over the ground; blended with MAX (blue world) or MIN (paper world), so where the line crosses or
     // retraces itself, or the halo meets the core, the brightest value wins instead of the layers adding up
@@ -109,7 +110,7 @@ const FRAG = /* glsl */`
 export function createLine(app, o) {
   const P = app.params, N = o.N || 2048, K = o.shapes.length;
   P.defineAll({
-    'line.shape': [0, { rate: 2.4 }], 'line.draw': [1, { rate: 4 }], 'line.x': 0, 'line.y': 0, 'line.s': 1,
+    'line.shape': [0, { rate: 2.4 }], 'line.draw': [1, { rate: 4 }], 'line.start': [0, { rate: 4 }], 'line.x': 0, 'line.y': 0, 'line.s': 1,
     'line.rx': 0, 'line.ry': 0, 'line.w': 2.4, 'line.halo': 0.22, 'line.noise': 0.12, 'line.alpha': 1,
     'pulse.amt': [0.8, { rate: 2 }], 'pulse.speed': 0.07
   });
@@ -136,7 +137,7 @@ export function createLine(app, o) {
     uShapes: { value: tex }, uN: { value: N }, uK: { value: K }, uShape: { value: 0 }, uStagger: { value: 0.7 },
     uTime: { value: 0 }, uNoise: { value: 0.3 }, uRes: { value: new THREE.Vector2(1, 1) }, uDpr: { value: 1 },
     uPointer: { value: new THREE.Vector2(-1e4, -1e4) }, uPush: { value: 0 }, uClip: { value: new THREE.Vector4(-1e5, -1e5, 1e5, 1e5) },
-    uColor: { value: new THREE.Color() }, uHot: { value: new THREE.Color() }, uDraw: { value: 1 },
+    uColor: { value: new THREE.Color() }, uHot: { value: new THREE.Color() }, uDraw: { value: 1 }, uStart: { value: 0 },
     uPulse: { value: 0 }, uPulseAmt: { value: 0 }, uClickU: { value: 0 }, uClickAge: { value: -1 }, uBg: { value: new THREE.Color() }
   };
   // two passes over one geometry: a wide soft halo, then the crisp line (the shared uniforms are the same objects)
@@ -176,7 +177,7 @@ export function createLine(app, o) {
     { const u = common;
       u.uTime.value = app.reduced ? 0 : t;
       u.uShape.value = P.get('line.shape');
-      u.uDraw.value = P.get('line.draw');
+      u.uDraw.value = P.get('line.draw'); u.uStart.value = P.get('line.start');
       u.uNoise.value = P.get('line.noise') * (app.reduced ? 0 : 1);
       u.uRes.value.set(w * dpr, h * dpr); u.uDpr.value = dpr;
       u.uPointer.value.copy(ptr); u.uPush.value = app.reduced ? 0 : pushK;

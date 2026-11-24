@@ -44,6 +44,7 @@ app.add(() => {
 
 /* ---------- the line ---------- */
 let line = null, field = null;
+let lean = 1, docking = false;   // the camera's lean (damped while the logo docks) · the dock owns the line
 let textRects = [];   // the copy on screen this frame (CSS px): the line, its labels and artwork step back behind it
 const keysOf = list => (list || []).map(k => {
   const set = Object.assign({}, k.set, app.narrow && k.narrow ? k.narrow : {});
@@ -74,7 +75,7 @@ async function build() {
   let cx = 0, cy = 0;
   app.add((t, dt) => {
     const k = 1 - Math.exp(-dt * 2.5);
-    cx += ((app.reduced ? 0 : app.input.nx * 0.22) - cx) * k; cy += ((app.reduced ? 0 : app.input.ny * 0.14) - cy) * k;
+    cx += ((app.reduced ? 0 : app.input.nx * 0.22 * lean) - cx) * k; cy += ((app.reduced ? 0 : app.input.ny * 0.14 * lean) - cy) * k;
     app.camera.position.set(cx, cy, 11.3); app.camera.lookAt(0, 0, 0);
   }, 5);
 }
@@ -146,7 +147,7 @@ function occlusion() {
       cover += ix * iy / A;
     }
     textRects = rects;
-    const target = 1 - 0.82 * Math.min(1, Math.max(0, (cover - 0.03) / 0.22));
+    const target = docking ? 1 : 1 - 0.82 * Math.min(1, Math.max(0, (cover - 0.03) / 0.22));
     fade += (target - fade) * Math.min(1, dt * 6);
     line.fade = fade;
   }, 8);
@@ -177,17 +178,82 @@ function fitStage(keys) {
 }
 
 /* ---------- the line rides the page where it belongs to a section ---------- */
-// The hero's wordmark leaves with the hero (it scrolls up and away, not across into the next chapter), and the closing
-// mark stays with the last section when the footer comes up beneath it, instead of hanging fixed on screen.
+// The closing mark stays with the last section when the footer comes up beneath it, instead of hanging fixed on screen.
 function carry() {
   if (!line) return;
-  const hero = document.querySelector('.page-index #hero'), foot = document.querySelector('#footer');
+  const foot = document.querySelector('#footer');
   app.add(() => {
     const vh = app.height; let dy = 0;
-    if (hero) { const r = hero.getBoundingClientRect(); if (r.bottom > -vh) dy += Math.max(0, -r.top) / vh * 2; }
     if (foot) { const r = foot.getBoundingClientRect(); dy += Math.max(0, vh - r.top) / vh * 2; }
     line.dy = dy;
   }, 9);
+}
+
+/* ---------- the logo: one, docking into the header ---------- */
+// At the top of the homepage the traced wordmark stands alone in the middle and the header's links are centred (the
+// header's own logo is hidden). Scrolling the first half screen glides the traced wordmark up into the header's logo
+// box, the links slide back to their place, and the logo image takes over as the line fades: one logo, never two.
+// While the page rests at the top the wordmark slowly erases itself along its path and draws itself again.
+function dock(keys) {
+  const brand = document.querySelector('.top .brand'), mark = brand && brand.querySelector('svg');
+  const nav = document.querySelector('.top .nav'), hero = document.querySelector('.page-index #hero'), top = document.querySelector('[data-top]');
+  if (!line || !mark || !hero || !keys[0]) return;
+  root.classList.add('has-dock');
+  const ease = p => p * p * p * (p * (p * 6 - 15) + 10), sm = (a, b, v) => { const x = Math.min(1, Math.max(0, (v - a) / (b - a))); return x * x * (3 - 2 * x); };
+  let navDx = 0;
+  const measure = () => { if (!nav) return; nav.style.transform = ''; const r = nav.getBoundingClientRect(); navDx = r.width ? innerWidth / 2 - (r.left + r.width / 2) : 0; };
+  measure(); app.onMeasure(measure); addEventListener('resize', measure);
+  const b = line.bounds(0), bw = b[2] - b[0];
+  const to = {};
+  const dockPose = () => {   // the word fitted to the header logo's box, on screen
+    const r = mark.getBoundingClientRect(), W = innerWidth, H = innerHeight;
+    const vhw = 2 * Math.tan(THREE.MathUtils.degToRad(app.camera.fov / 2)) * 11.3, wpp = vhw / H, sc = r.width * wpp / bw;
+    to['line.s'] = sc;
+    to['line.x'] = (r.left + r.width / 2 - W / 2) / (W / 2) - (b[0] + b[2]) / 2 * sc / (vhw * W / H / 2);
+    to['line.y'] = (H / 2 - (r.top + r.height / 2)) / (H / 2) - (b[1] + b[3]) / 2 * sc / (vhw / 2);
+    return to;
+  };
+  // the calm loop at the top: erase along the path, wait, draw again, rest
+  let loop = 0, start = 0, draw = 1;
+  app.add((t, dt) => {
+    const vh = innerHeight, y = scrollY, p = Math.min(1, y / (vh * 0.5)), e = ease(p);
+    if (y > hero.offsetHeight + vh) {   // well past the hero: the choreography has the line again (hidden until Tracy)
+      if (docking) { docking = false; lean = 1; brand.style.opacity = ''; top.classList.remove('is-docking'); if (nav) { nav.style.transform = ''; nav.style.opacity = ''; } P.set('line.w', 2.4, true); P.set('line.halo', 0.22, true); P.set('line.start', 0, true); }
+      return;
+    }
+    docking = true;
+    // from where the hero shows it, carried up with the page (so the copy never runs over it), into the header's box
+    // it rises with the page but never above the header's line; it shrinks early and slides across late
+    const a = keys[0].set, d = dockPose(), yh = Math.min(a['line.y'] + y / vh * 2, d['line.y']), es = 1 - Math.pow(1 - p, 3);
+    P.set('line.x', a['line.x'] + (d['line.x'] - a['line.x']) * e, true);
+    P.set('line.y', yh + (d['line.y'] - yh) * e, true);
+    P.set('line.s', a['line.s'] + (d['line.s'] - a['line.s']) * es, true);
+    P.set('line.rx', 0, true); P.set('line.ry', 0, true);
+    P.set('line.alpha', 1 - sm(0.78, 1, p), true);
+    P.set('line.w', 2.4 - 1.1 * e, true); P.set('line.halo', 0.22 - 0.12 * e, true);
+    brand.style.opacity = sm(0.8, 1, p).toFixed(3);
+    top.classList.toggle('is-docking', p < 1);   // no frosted header over the logo on its way in
+    // the centred links step aside while the logo passes, and come back in their docked place
+    if (nav) { const wide = navDx && innerWidth > 820;
+      nav.style.transform = wide ? `translateX(${(navDx * (1 - e)).toFixed(1)}px)` : '';
+      nav.style.opacity = wide ? Math.max(1 - sm(0.02, 0.18, p), sm(0.82, 1, p)).toFixed(3) : ''; }
+    lean = 1 - e;
+    // leave no trace: only while resting at the top, after the intro
+    if (p < 0.01 && t > 4.5 && !app.reduced) {
+      loop += dt;
+      const T = loop % 15;   // 7s drawn · 3.4s erasing · 1s gone · 3.6s drawing
+      if (T < 7) { start = 0; draw = 1; }
+      else if (T < 10.4) { start = ease((T - 7) / 3.4); draw = 1; }
+      else if (T < 11.4) { start = 1; draw = 1; }
+      else { start = 0; draw = ease((T - 11.4) / 3.6); }
+      if (T >= 11.4 && T < 11.45) start = 0;
+    } else {   // scrolling: whatever is missing comes back quickly
+      start = Math.max(0, start - dt * 2.2); draw = Math.min(1, draw + dt * 2.2);
+      if (start > 0.999) { start = 0; draw = 0; }
+      loop = 0;
+    }
+    if (t > 4.5) { P.set('line.start', start >= 1 ? 1 : start, true); P.set('line.draw', start >= 1 ? 1 : draw, true); }
+  }, 6);
 }
 
 /* ---------- a shape that is drawn, not morphed into ---------- */
@@ -488,7 +554,7 @@ createChoreo(app, keys);
 // the first key is where the page starts (so the intro lands on it)
 if (keys[0]) for (const [n, v] of Object.entries(keys[0].set)) if (P.has(n)) P.set(n, v, true);
 P.set('tone.view', P.get('tone') > 0.5 ? 1 : 0, true);
-labels(); touch(); occlusion(); carry(); drawIn();
+labels(); touch(); occlusion(); carry(); drawIn(); dock(keys);
 window.__trace = { app, line };   // for stills, QA and editors
 if (app.gl) { await app.idle(); app.renderer.compile(app.scene, app.camera); }
 shaders(1);
