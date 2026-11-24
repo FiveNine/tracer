@@ -318,11 +318,10 @@ function dock(keys) {
     // the route is laid out in screen space: the line itself sits still, untransformed
     P.set('line.x', 0, true); P.set('line.y', 0, true); P.set('line.s', 1, true); P.set('line.rx', 0, true); P.set('line.ry', 0, true);
     P.set('line.shape', 1, true);
-    // the front runs from the big wordmark's last point to the small one's last; the back follows from the big
-    // wordmark's first point and clears it and the curve early, so what is left behind is gone before the page can
-    // carry it off the screen (the back never overtakes the front: it ends where the small wordmark begins)
+    // front and back move in step: the front from the big wordmark's last point to the small one's last, the back
+    // from the big wordmark's first point to the small one's first, so the line only ever gets shorter, never gone
     const e = io(seg(k, 0, 0.84));
-    P.set('line.start', ub * io(seg(k, 0, 0.4)), true);
+    P.set('line.start', ub * e, true);
     P.set('line.draw', ua + (1 - ua) * e, true);
     P.set('line.w', 2.4 - 1.1 * e, true); P.set('line.halo', 0.22 - 0.1 * e, true);
     const hand = io(seg(k, 0.84, 1));
