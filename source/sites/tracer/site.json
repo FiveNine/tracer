@@ -482,7 +482,7 @@
      {
       "id": "rwa",
       "kind": "tokenize",
-      "tone": "blue",
+      "tone": "paper",
       "stage": "none",
       "eyebrow": "How the RWA works",
       "title": "The world, made on-chain.",
@@ -512,7 +512,7 @@
      {
       "id": "projects",
       "kind": "portal",
-      "tone": "blue",
+      "tone": "paper",
       "stage": "none",
       "full": true,
       "eyebrow": "Real-world assets",
@@ -1845,7 +1845,8 @@
      },
      {
       "at": "#rwa",
-      "ease": "inQuart",
+      "hold": 0.97,
+      "ease": "linear",
       "asFirst": true,
       "set": {
        "line.x": 0,
@@ -1856,7 +1857,7 @@
        "line.ry": 0,
        "line.rx": 0,
        "line.shape": 0,
-       "tone": 0
+       "tone": 1
       },
       "narrow": {
        "line.x": 0,
@@ -1870,7 +1871,7 @@
        "line.alpha": 0,
        "pulse.amt": 0,
        "line.shape": 3,
-       "tone": 0,
+       "tone": 1,
        "line.x": 0.5,
        "line.y": 0,
        "line.s": 1.0,

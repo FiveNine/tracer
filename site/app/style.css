@@ -37,7 +37,7 @@ body:not([data-page="index"]) .nogl-mark { left: auto; right: 8vw; transform: no
 
 /* header */
 .top { position: fixed; top: 0; left: 0; right: 0; z-index: 30; display: flex; align-items: center; gap: 28px; padding: 18px var(--pad); transition: transform .5s cubic-bezier(.2, .7, .2, 1), background .3s, backdrop-filter .3s; color: var(--tx); }
-.top.is-stuck { background: color-mix(in srgb, color-mix(in srgb, var(--blue), var(--paper) var(--pct)) 78%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+.top.is-stuck { background: color-mix(in srgb, color-mix(in srgb, var(--blue), var(--paper) var(--pct)) 95%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
 .top.is-hidden { transform: translateY(-110%); }
 .brand { display: block; color: var(--tx); line-height: 0; }
 .wordmark { height: 22px; width: auto; display: block; }
@@ -513,3 +513,6 @@ html body :is(.sec, .menu) :is(h1, h2, .tok-count b, .pt-n b, .tl-mid b, .lg-m b
 .top.in-hero { background: transparent !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }   /* the header sits on the hero itself */
 .has-dock .top .nav { transition: transform .9s cubic-bezier(.65, 0, .25, 1); }
 .has-dock .top .brand { transition: none; }
+
+/* chapters with their own dark ground keep white ink whatever the page's tone */
+.tok, .sec.k-portal { --tx: #fff; --tx2: rgba(255, 255, 255, .78); --rule: rgba(255, 255, 255, .22); --card: rgba(255, 255, 255, .08); --card-b: rgba(255, 255, 255, .2); --btn: #fff; --btn-fg: var(--ink); --hi: #fff; color: #fff; }

@@ -69,8 +69,9 @@ def keys_of(sections, shapes, cta_tone='blue'):
         if s['_stage'] == 'sweep':
             # the tokenize chapter draws its own line (scene/tokenize.js): the wordmark keeps its hero pose and is carried
             # up and away with the hero (app.js carry()), fading only once it is off screen
+            # the world turns to paper only once the photo covers the screen (hold: the hero's blue stays until then)
             prev = out[-2]
-            out[-1] = {'at': '#' + s['id'], 'ease': 'inQuart', 'asFirst': True, 'set': dict(prev['set'], **{'line.alpha': 0, 'pulse.amt': 0})}
+            out[-1] = {'at': '#' + s['id'], 'hold': .97, 'ease': 'linear', 'asFirst': True, 'set': dict(prev['set'], **{'line.alpha': 0, 'pulse.amt': 0, 'tone': 1})}
             if 'narrow' in prev: out[-1]['narrow'] = dict(prev['narrow'])
     # a hidden chapter waits, out of sight, exactly where the next visible chapter will show the same shape, so the line
     # appears there (drawn in, for drawIn shapes) instead of sliding into place
@@ -149,7 +150,7 @@ pages['index'], xpages['index'] = page(
         sec('hero', 'hero', 'blue', 'hero', 0, full=True, title='Leave No Trace.',
             lede=['Tracer turns verified carbon removal into an on-chain asset on Base, and retires it for good. TRCR holders run it.'],
             ctas=[{'label': 'Buy TRCR', 'href': '@buy'}, {'label': 'Learn about TRCR', 'href': 'token', 'ghost': True}], stageBox=True),
-        sec('rwa', 'tokenize', 'blue', 'sweep', 2, eyebrow='How the RWA works', title='The world, made on-chain.',
+        sec('rwa', 'tokenize', 'paper', 'sweep', 2, eyebrow='How the RWA works', title='The world, made on-chain.',
             lede=['Where the line passes, verified carbon removal becomes **CRRT**: an asset on Base you can hold, trade and retire. Every dot is a gram.'],
             items=[
                 {'title': 'Licensed and endorsed', 'body': 'Endorsers admitted by the DAO license removal projects and endorse their credits.'},
@@ -157,7 +158,7 @@ pages['index'], xpages['index'] = page(
                 {'title': 'Bought on the marketplace', 'body': 'Fixed-price listings in admitted stablecoins. No protocol fees.'},
                 {'title': 'Retired in a Rabbit', 'body': 'Send CRRT into a Rabbit and it is retired for good, with its beneficiary on record.'}],
             counter='grams on-chain · 1,000,000 = one tonne'),
-        sec('projects', 'portal', 'blue', 'hidden', 3, full=True, eyebrow='Real-world assets', title='Every tonne has a place.',
+        sec('projects', 'portal', 'paper', 'hidden', 3, full=True, eyebrow='Real-world assets', title='Every tonne has a place.',
             lede=['Each CRRT comes from a real removal project you can look into: where it is, who endorsed it, how much has been issued and how much is retired.'],
             items=PLACES,
             ctas=[{'label': 'Explore the ecosystem', 'href': 'ecosystem', 'ghost': True}],
