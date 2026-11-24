@@ -345,6 +345,13 @@ function thread(discs = [[-1.25, -0.95, 0.62], [-0.15, 0.7, 0.98], [1.5, 1.12, 0
   return b;
 }
 
+/** one gentle stroke as wide as the wordmark: the logo unravels into it to travel, and re-forms from it (the dock) */
+function stroke() {
+  const b = builder(), pts = [], W = 6.15;
+  for (let k = 0; k <= 160; k++) { const x = -W / 2 + k / 160 * W; pts.push([x, Math.sin(x * 1.1) * 0.12]); }
+  return b.stroke(pts);
+}
+
 /** a calm wave across the page (the quiet chapters) */
 function wave() {
   const b = builder(), pts = [];
@@ -358,7 +365,7 @@ function rule() {
   return b.stroke([[-4, 0], [4, 0]], 0.6);
 }
 
-export const LIBRARY = { word, mark, tracy, tracyArt, pillars, route, ring, loop, blocks, hub, timeline, sweep, thread, wave, rule };
+export const LIBRARY = { word, mark, tracy, tracyArt, pillars, route, ring, loop, blocks, hub, timeline, sweep, thread, stroke, wave, rule };
 
 /** build a shape by spec: "route" or { kind: "timeline", ids: [...], done: 2 } */
 export function makeShape(spec, marks, N) {

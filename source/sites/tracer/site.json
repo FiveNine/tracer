@@ -1807,6 +1807,7 @@
    "index": {
     "shapes": [
      "word",
+     "stroke",
      {
       "kind": "sweep",
       "photo": "photos/biochar.webp",
@@ -1868,7 +1869,7 @@
       "set": {
        "line.alpha": 0,
        "pulse.amt": 0,
-       "line.shape": 2,
+       "line.shape": 3,
        "tone": 0,
        "line.x": 0.5,
        "line.y": 0,
@@ -1891,7 +1892,7 @@
       "set": {
        "line.alpha": 0,
        "pulse.amt": 0,
-       "line.shape": 2,
+       "line.shape": 3,
        "tone": 1,
        "line.x": 0.5,
        "line.y": 0,
@@ -1914,7 +1915,7 @@
       "set": {
        "line.alpha": 0,
        "pulse.amt": 0,
-       "line.shape": 2,
+       "line.shape": 3,
        "tone": 1,
        "line.x": 0.5,
        "line.y": 0,
@@ -1937,7 +1938,7 @@
       "set": {
        "line.alpha": 0,
        "pulse.amt": 0,
-       "line.shape": 2,
+       "line.shape": 3,
        "tone": 1,
        "line.x": 0.5,
        "line.y": 0,
@@ -1960,7 +1961,7 @@
       "set": {
        "line.alpha": 0,
        "pulse.amt": 0,
-       "line.shape": 2,
+       "line.shape": 3,
        "tone": 1,
        "line.x": 0.5,
        "line.y": 0,
@@ -1983,7 +1984,7 @@
       "set": {
        "line.alpha": 0,
        "pulse.amt": 0,
-       "line.shape": 2,
+       "line.shape": 3,
        "tone": 1,
        "line.x": 0.5,
        "line.y": 0,
@@ -2011,7 +2012,7 @@
        "pulse.amt": 0.8,
        "line.ry": 0,
        "line.rx": 0,
-       "line.shape": 2,
+       "line.shape": 3,
        "tone": 1
       },
       "narrow": {
@@ -2032,16 +2033,16 @@
        "line.s": 1.0,
        "line.alpha": 1,
        "pulse.amt": 0.8,
-       "line.ry": 0.16,
+       "line.ry": -0.16,
        "line.rx": 0.06,
-       "line.shape": 3,
+       "line.shape": 4,
        "tone": 1
       },
       "narrow": {
        "line.x": 0,
        "line.y": 0.46,
        "line.s": 0.667,
-       "line.ry": 0.064,
+       "line.ry": -0.064,
        "line.rx": 0
       },
       "shift": "-18vh",

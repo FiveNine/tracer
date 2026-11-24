@@ -217,10 +217,13 @@ function dock(keys) {
     to['line.y'] = (H / 2 - (r.top + r.height / 2)) / (H / 2) - (b[1] + b[3]) / 2 * sc / (vhw / 2);
     return to;
   };
-  const DUR = 1.3;   // the whole move, in seconds: retract 0–.35 · travel and trace .35–.82 · hand over .82–1
+  // the move, as fractions of its length: the wordmark unravels into one stroke as it sets off (0–.4), travels in one
+  // eased path to the header's logo box (0–.62), re-forms into the logo there (.62–.9), and the image takes over (.9–1)
+  const DUR = 1.4;
   let k = 0, docked = false, from = null;
   const setNav = on => { if (!nav) return; nav.style.transform = on || innerWidth <= 820 ? '' : `translateX(${navDx.toFixed(1)}px)`; };
   setNav(false);
+  const seg = (v, a, b) => clamp((v - a) / (b - a));
   app.add((t, dt) => {
     const vh = innerHeight, y = scrollY;
     if (y > hero.offsetHeight + vh) {   // well past the hero: the choreography has the line again (hidden until Tracy)
@@ -243,22 +246,23 @@ function dock(keys) {
     if (k <= 0) {
       for (const n of ['line.x', 'line.s']) P.set(n, a[n], true);
       P.set('line.y', heroY, true); P.set('line.alpha', 1, true); P.set('line.w', 2.4, true); P.set('line.halo', 0.22, true);
+      P.set('line.shape', 0, true);
       brand.style.opacity = '0'; lean = 1; from = null;
       return;
     }
-    if (!from || k < 0.02) from = { x: a['line.x'], y: heroY, s: a['line.s'] };
+    if (!from) from = { x: a['line.x'], y: heroY, s: a['line.s'] };
     lean = 0;
-    let draw, mx, alpha = 1;
-    if (k < 0.35) { const q = io(k / 0.35); draw = 1 - q; mx = q * 0.25; }        // the word draws itself back into its start
-    else if (k < 0.82) { const q = io((k - 0.35) / 0.47); draw = q; mx = 0.25 + 0.75 * Math.min(1, q * 1.6); }   // travels, then traces the logo
-    else { draw = 1; mx = 1; alpha = 1 - io((k - 0.82) / 0.18); }                   // the image takes over
-    P.set('line.x', from.x + (d['line.x'] - from.x) * mx, true);
-    P.set('line.y', from.y + (d['line.y'] - from.y) * mx, true);
-    P.set('line.s', from.s + (d['line.s'] - from.s) * mx, true);
+    const m = io(seg(k, 0, 0.62));                                         // one movement, start to corner
+    const shape = k < 0.62 ? io(seg(k, 0, 0.4)) : 1 - io(seg(k, 0.62, 0.9));   // word → stroke … stroke → word
+    P.set('line.x', from.x + (d['line.x'] - from.x) * m, true);
+    P.set('line.y', from.y + (d['line.y'] - from.y) * m, true);
+    P.set('line.s', from.s + (d['line.s'] - from.s) * m, true);
     P.set('line.rx', 0, true); P.set('line.ry', 0, true);
-    P.set('line.draw', Math.max(0.0015, draw), true); P.set('line.alpha', alpha, true);
-    P.set('line.w', 2.4 - 1.1 * mx, true); P.set('line.halo', 0.22 - 0.12 * mx, true);
-    brand.style.opacity = k < 0.82 ? '0' : io((k - 0.82) / 0.18).toFixed(3);
+    P.set('line.shape', shape, true); P.set('line.draw', 1, true);
+    P.set('line.w', 2.4 - 1.1 * m, true); P.set('line.halo', 0.22 - 0.12 * m, true);
+    const hand = io(seg(k, 0.9, 1));
+    P.set('line.alpha', 1 - hand, true);
+    brand.style.opacity = hand.toFixed(3);
   }, 6);
 }
 
