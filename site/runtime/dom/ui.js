@@ -88,14 +88,15 @@ export function soundToggle(app, el, o = {}) {
   return el;
 }
 
-export function autoHide(app, el) {
+export function autoHide(app, el, o = {}) {
   if (typeof el === 'string') el = document.querySelector(el);
   if (!el) return;
   let ref = 0;
   app.add(() => {
     const y = app.scroll.y;
     el.classList.toggle('is-stuck', y > 40);
-    if (y < innerHeight * 0.6 || document.documentElement.classList.contains('menu-open')) { el.classList.remove('is-hidden'); ref = y; }
+    // o.hold(): while it returns true the header always stays (e.g. for as long as a hero is on screen)
+    if (y < innerHeight * 0.6 || (o.hold && o.hold()) || document.documentElement.classList.contains('menu-open')) { el.classList.remove('is-hidden'); ref = y; }
     else if (y - ref > 14) { el.classList.add('is-hidden'); ref = y; }
     else if (ref - y > 14) { el.classList.remove('is-hidden'); ref = y; }
   });

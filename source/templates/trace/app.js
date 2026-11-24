@@ -22,7 +22,10 @@ const colors = S.theme.colors;
 const app = createApp({ canvas: '.gl', post: X.look || { preset: 'editorial', tonemap: 'linear' }, clear: colors.blue || colors.accent, fov: 30, id: S.slug });
 const P = app.params;
 const ld = loader(app, { min: PID === 'index' ? 700 : 250, exit: 600 });
-initText(app); cursor(app); autoHide(app, '[data-top]');
+initText(app); cursor(app);
+// the header stays for the whole hero (the logo docks into it there) and only hides on the way down past it
+const heroEl = document.querySelector('.page-index #hero');
+autoHide(app, '[data-top]', { hold: () => !!heroEl && heroEl.getBoundingClientRect().bottom > 0 });
 app.facts = {
   genre: 'trace', look: (X.look || {}).preset || 'editorial',
   signature: 'one line of light traces the Tracer wordmark, then sweeps across a photo of real carbon removal and turns what it passes into a dot screen (one dot, one gram), threads round windows onto removal projects, and draws Tracy; touch the line and a signal runs along it',
@@ -191,20 +194,21 @@ function carry() {
 
 /* ---------- the logo: one, docking into the header ---------- */
 // At the top of the homepage the traced wordmark stands alone in the middle and the header's links are centred (the
-// header's own logo is hidden). Scrolling the first half screen glides the traced wordmark up into the header's logo
-// box, the links slide back to their place, and the logo image takes over as the line fades: one logo, never two.
-// While the page rests at the top the wordmark slowly erases itself along its path and draws itself again.
+// header's own logo is hidden). The wordmark scrolls with the hero; at the moment it would slide under the header, a
+// short timed move takes over (not tied to scroll): the line draws itself back into its first point, travels to the
+// header's logo box, traces the logo there, small, and hands over to the logo image. The links slide to their place at
+// the same time. Scrolling back up plays it in reverse. One logo, never two.
 function dock(keys) {
   const brand = document.querySelector('.top .brand'), mark = brand && brand.querySelector('svg');
   const nav = document.querySelector('.top .nav'), hero = document.querySelector('.page-index #hero'), top = document.querySelector('[data-top]');
-  if (!line || !mark || !hero || !keys[0]) return;
+  const stage = document.querySelector('.page-index [data-stage]');
+  if (!line || !mark || !hero || !stage || !keys[0]) return;
   root.classList.add('has-dock');
-  const ease = p => p * p * p * (p * (p * 6 - 15) + 10), sm = (a, b, v) => { const x = Math.min(1, Math.max(0, (v - a) / (b - a))); return x * x * (3 - 2 * x); };
+  const io = p => p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2, clamp = v => Math.min(1, Math.max(0, v));
   let navDx = 0;
-  const measure = () => { if (!nav) return; nav.style.transform = ''; const r = nav.getBoundingClientRect(); navDx = r.width ? innerWidth / 2 - (r.left + r.width / 2) : 0; };
+  const measure = () => { if (!nav) return; const was = nav.style.transform; nav.style.transition = 'none'; nav.style.transform = ''; const r = nav.getBoundingClientRect(); navDx = r.width ? innerWidth / 2 - (r.left + r.width / 2) : 0; nav.style.transform = was; void nav.offsetWidth; nav.style.transition = ''; };
   measure(); app.onMeasure(measure); addEventListener('resize', measure);
-  const b = line.bounds(0), bw = b[2] - b[0];
-  const to = {};
+  const b = line.bounds(0), bw = b[2] - b[0], to = {};
   const dockPose = () => {   // the word fitted to the header logo's box, on screen
     const r = mark.getBoundingClientRect(), W = innerWidth, H = innerHeight;
     const vhw = 2 * Math.tan(THREE.MathUtils.degToRad(app.camera.fov / 2)) * 11.3, wpp = vhw / H, sc = r.width * wpp / bw;
@@ -213,46 +217,48 @@ function dock(keys) {
     to['line.y'] = (H / 2 - (r.top + r.height / 2)) / (H / 2) - (b[1] + b[3]) / 2 * sc / (vhw / 2);
     return to;
   };
-  // the calm loop at the top: erase along the path, wait, draw again, rest
-  let loop = 0, start = 0, draw = 1;
+  const DUR = 1.3;   // the whole move, in seconds: retract 0–.35 · travel and trace .35–.82 · hand over .82–1
+  let k = 0, docked = false, from = null;
+  const setNav = on => { if (!nav) return; nav.style.transform = on || innerWidth <= 820 ? '' : `translateX(${navDx.toFixed(1)}px)`; };
+  setNav(false);
   app.add((t, dt) => {
-    const vh = innerHeight, y = scrollY, p = Math.min(1, y / (vh * 0.5)), e = ease(p);
+    const vh = innerHeight, y = scrollY;
     if (y > hero.offsetHeight + vh) {   // well past the hero: the choreography has the line again (hidden until Tracy)
-      if (docking) { docking = false; lean = 1; brand.style.opacity = ''; top.classList.remove('is-docking'); if (nav) { nav.style.transform = ''; nav.style.opacity = ''; } P.set('line.w', 2.4, true); P.set('line.halo', 0.22, true); P.set('line.start', 0, true); }
+      if (docking) { docking = false; lean = 1; P.set('line.w', 2.4, true); P.set('line.halo', 0.22, true); }
+      brand.style.opacity = ''; top.classList.remove('in-hero'); setNav(true); k = 1; docked = true;
       return;
     }
     docking = true;
-    // from where the hero shows it, carried up with the page (so the copy never runs over it), into the header's box
-    // it rises with the page but never above the header's line; it shrinks early and slides across late
-    const a = keys[0].set, d = dockPose(), yh = Math.min(a['line.y'] + y / vh * 2, d['line.y']), es = 1 - Math.pow(1 - p, 3);
-    P.set('line.x', a['line.x'] + (d['line.x'] - a['line.x']) * e, true);
-    P.set('line.y', yh + (d['line.y'] - yh) * e, true);
-    P.set('line.s', a['line.s'] + (d['line.s'] - a['line.s']) * es, true);
-    P.set('line.rx', 0, true); P.set('line.ry', 0, true);
-    P.set('line.alpha', 1 - sm(0.78, 1, p), true);
-    P.set('line.w', 2.4 - 1.1 * e, true); P.set('line.halo', 0.22 - 0.12 * e, true);
-    brand.style.opacity = sm(0.8, 1, p).toFixed(3);
-    top.classList.toggle('is-docking', p < 1);   // no frosted header over the logo on its way in
-    // the centred links step aside while the logo passes, and come back in their docked place
-    if (nav) { const wide = navDx && innerWidth > 820;
-      nav.style.transform = wide ? `translateX(${(navDx * (1 - e)).toFixed(1)}px)` : '';
-      nav.style.opacity = wide ? Math.max(1 - sm(0.02, 0.18, p), sm(0.82, 1, p)).toFixed(3) : ''; }
-    lean = 1 - e;
-    // leave no trace: only while resting at the top, after the intro
-    if (p < 0.01 && t > 4.5 && !app.reduced) {
-      loop += dt;
-      const T = loop % 15;   // 7s drawn · 3.4s erasing · 1s gone · 3.6s drawing
-      if (T < 7) { start = 0; draw = 1; }
-      else if (T < 10.4) { start = ease((T - 7) / 3.4); draw = 1; }
-      else if (T < 11.4) { start = 1; draw = 1; }
-      else { start = 0; draw = ease((T - 11.4) / 3.6); }
-      if (T >= 11.4 && T < 11.45) start = 0;
-    } else {   // scrolling: whatever is missing comes back quickly
-      start = Math.max(0, start - dt * 2.2); draw = Math.min(1, draw + dt * 2.2);
-      if (start > 0.999) { start = 0; draw = 0; }
-      loop = 0;
+    top.classList.toggle('in-hero', hero.getBoundingClientRect().bottom > 70);
+    // when: the moment the wordmark would slip under the header (with a little hysteresis on the way back)
+    const hb = top.getBoundingClientRect().bottom, st = stage.getBoundingClientRect().top;
+    // (on phones the wordmark starts right under the header: there the first real scroll is the moment)
+    if (!docked && st < hb + 4 && y > 6) docked = true;
+    else if (docked && (st > hb + 48 || y <= 2)) docked = false;
+    setNav(docked);
+    if (app.reduced) k = docked ? 1 : 0;
+    else k = clamp(k + (docked ? 1 : -1) * dt / (window.__dockDur || DUR));   // __dockDur: slow it down for stills
+    // the hero pose, riding with the page (so the copy never runs over it)
+    const a = keys[0].set, heroY = a['line.y'] + y / vh * 2, d = dockPose();
+    if (k <= 0) {
+      for (const n of ['line.x', 'line.s']) P.set(n, a[n], true);
+      P.set('line.y', heroY, true); P.set('line.alpha', 1, true); P.set('line.w', 2.4, true); P.set('line.halo', 0.22, true);
+      brand.style.opacity = '0'; lean = 1; from = null;
+      return;
     }
-    if (t > 4.5) { P.set('line.start', start >= 1 ? 1 : start, true); P.set('line.draw', start >= 1 ? 1 : draw, true); }
+    if (!from || k < 0.02) from = { x: a['line.x'], y: heroY, s: a['line.s'] };
+    lean = 0;
+    let draw, mx, alpha = 1;
+    if (k < 0.35) { const q = io(k / 0.35); draw = 1 - q; mx = q * 0.25; }        // the word draws itself back into its start
+    else if (k < 0.82) { const q = io((k - 0.35) / 0.47); draw = q; mx = 0.25 + 0.75 * Math.min(1, q * 1.6); }   // travels, then traces the logo
+    else { draw = 1; mx = 1; alpha = 1 - io((k - 0.82) / 0.18); }                   // the image takes over
+    P.set('line.x', from.x + (d['line.x'] - from.x) * mx, true);
+    P.set('line.y', from.y + (d['line.y'] - from.y) * mx, true);
+    P.set('line.s', from.s + (d['line.s'] - from.s) * mx, true);
+    P.set('line.rx', 0, true); P.set('line.ry', 0, true);
+    P.set('line.draw', Math.max(0.0015, draw), true); P.set('line.alpha', alpha, true);
+    P.set('line.w', 2.4 - 1.1 * mx, true); P.set('line.halo', 0.22 - 0.12 * mx, true);
+    brand.style.opacity = k < 0.82 ? '0' : io((k - 0.82) / 0.18).toFixed(3);
   }, 6);
 }
 

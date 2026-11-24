@@ -510,4 +510,6 @@ html body :is(.sec, .top, .menu, .foot, .tracy, .announce) :is(
 .pt-n small { letter-spacing: .1em; }
 .cn-facts dd { font-family: var(--font-sans); font-weight: 600; }
 html body :is(.sec, .menu) :is(h1, h2, .tok-count b, .pt-n b, .tl-mid b, .lg-m b) * { font-size: inherit !important; }   /* split headlines: the words keep the headline's size */
-.top.is-docking { background: transparent !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+.top.in-hero { background: transparent !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }   /* the header sits on the hero itself */
+.has-dock .top .nav { transition: transform .9s cubic-bezier(.65, 0, .25, 1); }
+.has-dock .top .brand { transition: none; }
