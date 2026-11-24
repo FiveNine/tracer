@@ -55,7 +55,7 @@ const BLUE = '#0657ff', INK = '#0b1533', WHITE = '#ffffff', PAPER = '#eef1f8';
     const tr = new THREE.Mesh(new THREE.BoxGeometry(L, .012, .07), new THREE.MeshBasicMaterial({ color: BLUE })); tr.position.set(cx, .71, z); scene.add(tr);
   }
   belt(-13.2, -10.6); belt(-6.6, -3.2); belt(1.4, 4.4); belt(8.8, 12); belt(16.2, 19.2);
-  // what travels: tonne crates (dark), then gram beads (blue)
+  // what travels: tonne crates, then CRRT coins
   // a tonne of removed carbon: an open white slatted crate heaped with dark granules, a "1 t CO₂" plate on its side;
   // once endorsed it carries a blue strap and a round blue seal
   const granG = new THREE.IcosahedronGeometry(.07, 0), granM = new THREE.MeshStandardMaterial({ color: '#2a2f3a', roughness: .9, flatShading: true });
@@ -75,12 +75,19 @@ const BLUE = '#0657ff', INK = '#0b1533', WHITE = '#ffffff', PAPER = '#eef1f8';
       const seal = part(new THREE.CylinderGeometry(.13, .13, .03, 28), BLUE, .2, .31, .345, g, false); seal.rotation.x = Math.PI / 2; part(new THREE.TorusGeometry(.08, .012, 8, 24), '#ffffff', .2, .31, .362, g, false); }
     return g;
   };
-  const beadG = new THREE.SphereGeometry(.075, 14, 10), beadM = new THREE.MeshStandardMaterial({ color: BLUE, roughness: .25 });
-  const beads = (pts) => { const im = new THREE.InstancedMesh(beadG, beadM, pts.length), o = new THREE.Object3D(); im.castShadow = true; pts.forEach((p, i) => { o.position.copy(p); o.updateMatrix(); im.setMatrixAt(i, o.matrix); }); scene.add(im); return im; };
-  // grams riding a belt: each bead keeps its place across the belt and drifts along it, wrapping round at the end
-  const flow = (pts, x0, L, v) => { const im = beads(pts), o = new THREE.Object3D();
-    anims.push(t => { pts.forEach((p, i) => { o.position.set(x0 + (((p.x - x0 + t * v) % L) + L) % L, p.y, p.z); o.updateMatrix(); im.setMatrixAt(i, o.matrix); }); im.instanceMatrix.needsUpdate = true; }); };
-  // crates riding a belt, evenly spaced, wrapping round
+  // CRRT: small coins, a blue disc with a white ring and CRRT on its face; they ride the belts in rows, stack on the
+  // market's trays and drop one by one into the rabbit bank
+  const coinTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d');
+    x.fillStyle = BLUE; x.fillRect(0, 0, 128, 128); x.strokeStyle = '#ffffff'; x.lineWidth = 7; x.beginPath(); x.arc(64, 64, 50, 0, 7); x.stroke();
+    x.fillStyle = '#ffffff'; x.font = '700 27px Space Grotesk'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('CRRT', 64, 67);
+    const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = 4; return t; })();
+  const coinG = new THREE.CylinderGeometry(.15, .15, .045, 32);
+  const coinMats = [M('#0446d6', { roughness: .35 }), new THREE.MeshStandardMaterial({ map: coinTex, roughness: .35 }), M(BLUE, { roughness: .35 })];
+  const coins = n => { const im = new THREE.InstancedMesh(coinG, coinMats, n); im.castShadow = true; scene.add(im); return im; };
+  const placed = list => { const im = coins(list.length), o = new THREE.Object3D(); list.forEach(([x, y, z, rx = 0, rz = 0], i) => { o.position.set(x, y, z); o.rotation.set(rx, 0, rz); o.updateMatrix(); im.setMatrixAt(i, o.matrix); }); return im; };
+  // coins riding a belt: in lanes, evenly spaced, lying flat, wrapping round at the end
+  const coinFlow = (x0, L, lanes, gap, v, y = .74) => { const per = Math.floor(L / gap), n = per * lanes.length, im = coins(n), o = new THREE.Object3D();
+    anims.push(t => { let k = 0; for (const z of lanes) for (let i = 0; i < per; i++) { o.position.set(x0 + ((i * gap + t * v + (z * 1.7 + 5)) % L), y, z); o.rotation.set(0, 0, 0); o.updateMatrix(); im.setMatrixAt(k++, o.matrix); } im.instanceMatrix.needsUpdate = true; }); };
   const movers = (x0, x1, n, sealed, v = .45) => { const L = x1 - x0 - .7, cs = []; for (let i = 0; i < n; i++) cs.push(crate(x0 + .35, 0, sealed));
     anims.push(t => cs.forEach((c, i) => { c.position.x = x0 + .35 + ((t * v + i * L / n) % L); })); };
   
@@ -133,45 +140,45 @@ const BLUE = '#0657ff', INK = '#0b1533', WHITE = '#ffffff', PAPER = '#eef1f8';
     for (let i = 0; i < 3; i++) part(new THREE.CylinderGeometry(.18, .18, .1, 20), i ? '#c9d1e2' : BLUE, -1.0 + i * .5, 2.35, -.9, g, false);
     const mc = crate(ST[2] - .4, 0, true, 3.3); anims.push(t => { mc.position.y = 2.99 + Math.sin(t * 1.8) * .05; mc.rotation.y = Math.sin(t * .9) * .08; });
     part(rbox(.05, .9, 1.5, .04), INK, 1.31, 1.1, -.15, g, false);                        // a window on the side facing the line
-    { const pts = []; for (let i = 0; i < 70; i++) pts.push(new THREE.Vector3(ST[2] + 1.36, .75 + rnd() * .7, -.8 + rnd() * 1.3)); beads(pts); }
+    { const st = []; for (let s = 0; s < 3; s++) for (let k = 0; k < 5 + s; k++) st.push([ST[2] + 1.38, .42 + s * .0 + k * .05, -.55 + s * .4, 0, Math.PI / 2 * 0]); placed(st.map(([x, y, z]) => [x - .05, .62 + (y - .42), z])); }   // stacks seen through the window
     for (let i = 0; i < 4; i++) part(rbox(1.6, .06, .05, .02), '#c9d1e2', -.2, .7 + i * .22, 1.22, g, false);   // vents on the front
     { const c = document.createElement('canvas'); c.width = 256; c.height = 128; const x = c.getContext('2d'); x.fillStyle = '#0657ff'; x.fillRect(0, 0, 256, 128); x.fillStyle = '#fff'; x.font = '600 54px Space Grotesk'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('CRRT', 128, 70);
       const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; const m = new THREE.Mesh(new THREE.PlaneGeometry(1.3, .65), new THREE.MeshBasicMaterial({ map: t })); m.position.set(ST[2] - .2, 1.85, 1.215); scene.add(m); }
-    // grams pouring out onto the next belt: a thick stream thinning into a line
-    const pts = []; for (let i = 0; i < 520; i++) { const t = rnd(), x = 1.4 + t * 3.2, s = .38 * (1 - t * .5); pts.push(new THREE.Vector3(x + (rnd() - .5) * .1, .78 + rnd() * .14 + (t < .1 ? (1 - t * 10) * .5 * rnd() : 0), (rnd() - .5) * s * 1.6)); }
-    flow(pts, 1.4, 3.2, .5);
+    // the tonne leaves as CRRT: three lanes of coins on the next belt
+    coinFlow(1.5, 3, [-.25, 0, .25], .38, .45);
+
   }
   // 04 · marketplace: grams in trays on a counter, priced, paid in stablecoins
   { const g = group(ST[3], 0);
     part(rbox(3, 1, 1.6, .1), WHITE, 0, .8, -.2, g);
     for (const x of [-1.35, 1.35]) part(rbox(.14, 2.4, .14, .04), WHITE, x, 1.5, -.85, g);
     for (let i = 0; i < 6; i++) part(rbox(.5, .08, 1.9, .03), i % 2 ? WHITE : BLUE, -1.25 + i * .5, 2.8, -.2, g).rotation.x = .28;
-    for (let k = 0; k < 3; k++) { part(rbox(.7, .12, .55, .04), '#dfe4ef', -.9 + k * .9, 1.36, -.3, g); const pts = []; for (let i = 0; i < 26; i++) pts.push(new THREE.Vector3(ST[3] - .9 + k * .9 + (rnd() - .5) * .5, 1.5 + rnd() * .1, -.3 + (rnd() - .5) * .35)); beads(pts); }
+    // trays of CRRT, in stacks, each with its price tag
+    { const st = []; for (let k = 0; k < 3; k++) { part(rbox(.8, .1, .6, .04), '#dfe4ef', -.9 + k * .9, 1.36, -.3, g);
+        for (const [dx, dz, h] of [[-.17, -.08, 4 + k], [.17, -.1, 2 + k], [0, .14, 3]]) for (let c = 0; c < h; c++) st.push([ST[3] - .9 + k * .9 + dx, 1.44 + c * .048, -.3 + dz]);
+        const tag = part(rbox(.3, .2, .02, .01), '#ffffff', -.9 + k * .9, 1.62, .02, g); tag.rotation.x = -.35; part(new THREE.BoxGeometry(.16, .005, .004), BLUE, 0, .03, .012, tag, false); }
+      placed(st); }
     // coins
     for (let i = 0; i < 4; i++) part(new THREE.CylinderGeometry(.22, .22, .06, 28), '#ffffff', 1.0 + (i % 2) * .1, 1.34 + i * .065, .45, g).material = M('#2775ca');
-    const pts = []; for (let i = 0; i < 70; i++) pts.push(new THREE.Vector3(9 + rnd() * 3, .82 + rnd() * .08, (rnd() - .5) * .45)); flow(pts, 8.8, 3.2, .5);
+    coinFlow(8.9, 3, [-.2, .2], .42, .45);
   }
-  // 05 · rabbit: a white ceramic rabbit bank (generated model, given the scene's own glaze). Grams drop in through the
-  // slot on its back; a certificate comes out
+  // 05 · rabbit: a glazed rabbit bank (a generated model, its own colours). CRRT coins drop in through the slot on its
+  // back and are gone for good; a certificate comes out
   { const g = group(ST[4] + .1, .1, 3.14);
     const gl = o.model ? await new GLTFLoader().loadAsync(o.model).catch(() => null) : null;
     if (gl) {
-      const m = gl.scene; m.traverse(c => { if (!c.isMesh) return; const g = new THREE.BufferGeometry(); g.setAttribute('position', c.geometry.attributes.position); if (c.geometry.index) g.setIndex(c.geometry.index); c.geometry = mergeVerts(g, 1e-4); });   /* one smooth surface: no seams for the outline to show */ const box = new THREE.Box3().setFromObject(m), sz = box.getSize(new THREE.Vector3()), k = 3.6 / sz.y;
+      const m = gl.scene; const box = new THREE.Box3().setFromObject(m), sz = box.getSize(new THREE.Vector3()), k = 3.6 / sz.y;
       m.scale.setScalar(k); m.position.set(-(box.min.x + sz.x / 2) * k, -box.min.y * k + .3, -(box.min.z + sz.z / 2) * k);
-      const hull = new THREE.MeshBasicMaterial({ color: INK, side: THREE.BackSide, transparent: true, opacity: .55 });
-      const meshes = []; m.traverse(o => { if (o.isMesh) meshes.push(o); });
-      for (const o of meshes) { o.material = M('#e8ecf4', { roughness: .45 }); o.castShadow = o.receiveShadow = true; o.geometry.computeVertexNormals();
-        // a fine ink silhouette, like the outlines on every other part: the same mesh, pushed out along its normals, back faces only
-        const sh = o.geometry.clone(), pa = sh.attributes.position, na = sh.attributes.normal; for (let i = 0; i < pa.count; i++) pa.setXYZ(i, pa.getX(i) + na.getX(i) * .012 / k, pa.getY(i) + na.getY(i) * .012 / k, pa.getZ(i) + na.getZ(i) * .012 / k);
-        }
+      // its own colours (white glaze, blue ears and collar), lit like the rest of the scene; both sides, so no seam ever shows through
+      m.traverse(c => { if (!c.isMesh) return; const src = c.material; c.material = new THREE.MeshStandardMaterial({ map: src.map || null, color: src.map ? '#ffffff' : '#eef1f7', roughness: .38, metalness: 0, side: THREE.DoubleSide }); c.castShadow = c.receiveShadow = true; });
       g.add(m);
     }
     part(new THREE.TorusGeometry(1.15, .07, 12, 48), BLUE, 0, .38, 0, g, false).rotation.x = Math.PI / 2;   // a blue ring it sits in
     // grams dropping into the slot
-    { const n = 40, ts = [], jit = [], im = beads(new Array(n).fill(0).map(() => new THREE.Vector3())), ob = new THREE.Object3D();
-      for (let i = 0; i < n; i++) { ts.push(i / n); jit.push([(rnd() - .5) * .3, rnd() * .1]); }
-      // grams leave the belt and arc over into the rabbit
-      anims.push(t => { for (let i = 0; i < n; i++) { const u = (ts[i] + t * .22) % 1; ob.position.set(ST[4] - 2.3 + u * 2.3, .85 + Math.sin(u * Math.PI) * 2 * (1 - u * .35) + u * .9 + jit[i][1], .15 + jit[i][0] * (1 - u)); ob.scale.setScalar(u > .9 ? (1 - u) * 10 : 1); ob.updateMatrix(); im.setMatrixAt(i, ob.matrix); } im.instanceMatrix.needsUpdate = true; }); }
+    { const n = 14, im = coins(n), ob = new THREE.Object3D();
+
+      // coins leave the belt one by one, turn on edge and drop into the slot on the rabbit's back
+      anims.push(t => { for (let i = 0; i < n; i++) { const u = (i / n + t * .14) % 1, h = Math.sin(u * Math.PI); ob.position.set(ST[4] - 2.4 + u * 2.3, .8 + h * 2 * (1 - u * .2) + u * 1.5, .1 - u * .6); ob.rotation.set(0, 0, Math.min(1, u * 1.6) * Math.PI / 2); ob.scale.setScalar(u > .92 ? (1 - u) * 12.5 : 1); ob.updateMatrix(); im.setMatrixAt(i, ob.matrix); } im.instanceMatrix.needsUpdate = true; }); }
     // the certificate, out in front, with its blue seal
     const cert = new THREE.Group(); cert.position.set(ST[4] + 1.4, .42, 2.1); cert.rotation.set(0, -.5, 0); scene.add(cert);
     part(rbox(1.1, .03, .8, .02), '#ffffff', 0, 0, 0, cert);
