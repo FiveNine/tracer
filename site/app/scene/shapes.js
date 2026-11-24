@@ -352,6 +352,14 @@ function stroke() {
   return b.stroke(pts);
 }
 
+/** a short streak of light, its head at the origin and its tail fading out behind it: what the wordmark pours into
+    to fly to the header (the dock) */
+function streak() {
+  const b = builder(), pts = [], L = 3;
+  for (let k = 0; k <= 120; k++) { const t = k / 120; pts.push([-L + t * L, 0, 0, Math.pow(t, 1.6)]); }
+  return b.stroke(pts);
+}
+
 /** a calm wave across the page (the quiet chapters) */
 function wave() {
   const b = builder(), pts = [];
@@ -365,7 +373,7 @@ function rule() {
   return b.stroke([[-4, 0], [4, 0]], 0.6);
 }
 
-export const LIBRARY = { word, mark, tracy, tracyArt, pillars, route, ring, loop, blocks, hub, timeline, sweep, thread, stroke, wave, rule };
+export const LIBRARY = { word, mark, tracy, tracyArt, pillars, route, ring, loop, blocks, hub, timeline, sweep, thread, stroke, streak, wave, rule };
 
 /** build a shape by spec: "route" or { kind: "timeline", ids: [...], done: 2 } */
 export function makeShape(spec, marks, N) {

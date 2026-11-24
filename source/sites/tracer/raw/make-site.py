@@ -20,8 +20,8 @@ LINKS = {
 }
 
 # ---- the line's shapes: natural width (world units) for fitting ----
-WIDTH = {'stroke': 6.15, 'sweep': .44, 'thread': 4.96, 'tracyArt': 2.24, 'tracy': 3.05, 'word': 6.15, 'pillars': 5.4, 'route': 6.1, 'ring': 3.6, 'loop': 4.3, 'blocks': 4.7, 'hub': 4.5, 'timeline': 2.2, 'mark': 1.95, 'wave': 14, 'rule': 8}
-HEIGHT = {'stroke': .3, 'sweep': 8.1, 'thread': 4.03, 'tracyArt': 3.6, 'tracy': 3.6, 'word': 1.3, 'pillars': 1.5, 'route': 2.7, 'ring': 3.6, 'loop': 3.2, 'blocks': 2.0, 'hub': 3.0, 'timeline': 5.8, 'mark': 3.0, 'wave': .5, 'rule': .1}
+WIDTH = {'streak': 3, 'stroke': 6.15, 'sweep': .44, 'thread': 4.96, 'tracyArt': 2.24, 'tracy': 3.05, 'word': 6.15, 'pillars': 5.4, 'route': 6.1, 'ring': 3.6, 'loop': 4.3, 'blocks': 4.7, 'hub': 4.5, 'timeline': 2.2, 'mark': 1.95, 'wave': 14, 'rule': 8}
+HEIGHT = {'streak': .1, 'stroke': .3, 'sweep': 8.1, 'thread': 4.03, 'tracyArt': 3.6, 'tracy': 3.6, 'word': 1.3, 'pillars': 1.5, 'route': 2.7, 'ring': 3.6, 'loop': 3.2, 'blocks': 2.0, 'hub': 3.0, 'timeline': 5.8, 'mark': 3.0, 'wave': .5, 'rule': .1}
 
 
 def kind(s):
@@ -140,7 +140,7 @@ pages, xpages = {}, {}
 # ---------------------------------------------------------------- home
 # The line is the hero's wordmark, then the light that tokenizes a real removal project as it sweeps across it, then a
 # fly-through of removal places (no line there); it steps back for the reading chapters and returns to draw Tracy.
-shapes = ['word', 'stroke',   # the stroke is the dock's (app.js dock()): next to the word, so they morph straight into each other
+shapes = ['word', 'streak',   # the streak is the dock's (app.js dock()): next to the word, so they morph straight into each other
           {'kind': 'sweep', 'photo': 'photos/biochar.webp', 'from': .78, 'to': .02, 'nFrom': .8, 'nTo': -.55},
           {'kind': 'tracyArt', 'fill': 'tracyFill', 'drawIn': '#faq'}, 'mark']
 pages['index'], xpages['index'] = page(

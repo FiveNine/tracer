@@ -1807,7 +1807,7 @@
    "index": {
     "shapes": [
      "word",
-     "stroke",
+     "streak",
      {
       "kind": "sweep",
       "photo": "photos/biochar.webp",
